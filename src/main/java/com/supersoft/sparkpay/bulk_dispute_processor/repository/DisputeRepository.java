@@ -20,8 +20,16 @@ public class DisputeRepository {
         
         log.info("Updating dispute: uniqueKey={}, resolvedBy={}, status={}, resolved={}, proofUri={}", 
                 uniqueKey, resolvedBy, status, resolved, proofUri);
+        log.info("Executing SQL: {}", sql);
         
-        return jdbcTemplate.update(sql, 
-            resolvedBy, status, resolved, proofUri, uniqueKey);
+        try {
+            int result = jdbcTemplate.update(sql, 
+                resolvedBy, status, resolved, proofUri, uniqueKey);
+            log.info("Update result: {} rows affected", result);
+            return result;
+        } catch (Exception e) {
+            log.error("Error executing update query", e);
+            throw e;
+        }
     }
 }

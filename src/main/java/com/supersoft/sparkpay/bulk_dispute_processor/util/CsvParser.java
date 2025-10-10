@@ -28,33 +28,15 @@ public class CsvParser {
             if (c == '"') {
                 inQuotes = !inQuotes;
             } else if (c == ',' && !inQuotes) {
-                result.add(cleanField(currentField.toString()));
+                result.add(currentField.toString().trim());
                 currentField = new StringBuilder();
             } else {
                 currentField.append(c);
             }
         }
         
-        result.add(cleanField(currentField.toString()));
+        result.add(currentField.toString().trim());
         return result;
-    }
-    
-    /**
-     * Clean a CSV field by removing various types of whitespace and invisible characters
-     * @param field The raw field value
-     * @return Cleaned field value
-     */
-    private static String cleanField(String field) {
-        if (field == null) {
-            return "";
-        }
-        
-        // Remove all types of whitespace and invisible characters
-        return field.replaceAll("\\s+", " ")  // Replace multiple whitespace with single space
-                   .replaceAll("^\\s+|\\s+$", "")  // Remove leading/trailing whitespace
-                   .replaceAll("[\\u00A0\\u2000-\\u200F\\u2028-\\u202F\\u205F-\\u206F\\u3000]", "")  // Remove various Unicode spaces
-                   .replaceAll("[\\uFEFF]", "")  // Remove BOM if present in field
-                   .trim();
     }
     
     /**
@@ -106,24 +88,5 @@ public class CsvParser {
      */
     public static boolean hasBom(String text) {
         return text.startsWith("\uFEFF");
-    }
-    
-    /**
-     * Debug method to show invisible characters in a string
-     * @param text The text to analyze
-     * @return String with invisible characters made visible
-     */
-    public static String showInvisibleChars(String text) {
-        if (text == null) return "null";
-        
-        StringBuilder result = new StringBuilder();
-        for (char c : text.toCharArray()) {
-            if (Character.isWhitespace(c) || c == '\uFEFF') {
-                result.append("[").append((int)c).append("]");
-            } else {
-                result.append(c);
-            }
-        }
-        return result.toString();
     }
 }

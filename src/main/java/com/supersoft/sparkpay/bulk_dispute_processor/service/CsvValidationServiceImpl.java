@@ -89,7 +89,7 @@ public class CsvValidationServiceImpl implements CsvValidationService {
         
         for (String requiredColumn : ValidationConstants.REQUIRED_COLUMNS) {
             String value = rowMap.get(requiredColumn);
-            log.debug("Row {} - Column '{}': value='{}' (length={})", rowNumber, requiredColumn, value, value != null ? value.length() : 0);
+            log.debug("Row {} - Column '{}': value='{}'", rowNumber, requiredColumn, value);
             if (value == null || value.trim().isEmpty()) {
                 result.addError("Row " + rowNumber + ": Missing required value for column '" + requiredColumn + "'");
                 rowIsValid = false;
