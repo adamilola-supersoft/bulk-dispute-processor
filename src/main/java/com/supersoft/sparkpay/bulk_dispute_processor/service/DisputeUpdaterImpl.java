@@ -13,6 +13,9 @@ public class DisputeUpdaterImpl implements DisputeUpdater {
 
     @Autowired
     DisputeRepository disputeRepository;
+    
+    @Autowired
+    ProofService proofService;
 
     @Override
     public ProcessingResult processRow(Map<String, String> row) {
@@ -33,10 +36,23 @@ public class DisputeUpdaterImpl implements DisputeUpdater {
             int status = mapActionToStatus(action);
             int resolved = (status == 0) ? 0 : 1;
             
-            log.info("Processing dispute: uniqueKey={}, action={}, status={}, resolved={}, resolvedBy={}", 
-                    uniqueKey, action, status, resolved, resolvedBy);
+            // For REJECT actions, check if proof file exists
+            String finalProofUri = proofUri;
+            if ("REJECT".equalsIgnoreCase(action)) {
+                if (proofService.proofExists(uniqueKey)) {
+                    // Use the uploaded proof file path
+                    finalProofUri = proofService.getProofFilePath(uniqueKey);
+                    log.info("Using uploaded proof file for dispute: {} -> {}", uniqueKey, finalProofUri);
+                } else if (proofUri == null || proofUri.trim().isEmpty()) {
+                    log.warn("No proof provided for REJECT action on dispute: {}", uniqueKey);
+                    return ProcessingResult.failure("Proof is required for REJECT actions. Please upload proof file or provide proof URI.");
+                }
+            }
             
-            int rows = disputeRepository.updateDisputeStatus(uniqueKey, resolvedBy, status, resolved, proofUri);
+            log.info("Processing dispute: uniqueKey={}, action={}, status={}, resolved={}, resolvedBy={}, proofUri={}", 
+                    uniqueKey, action, status, resolved, resolvedBy, finalProofUri);
+            
+            int rows = disputeRepository.updateDisputeStatus(uniqueKey, resolvedBy, status, resolved, finalProofUri);
             
             if (rows > 0) {
                 log.info("Successfully updated dispute: {} with action: {}", uniqueKey, action);

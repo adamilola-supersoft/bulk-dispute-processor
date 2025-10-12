@@ -1,16 +1,53 @@
 # SparkPay Bulk Dispute Processor
 
-A Spring Boot microservice for processing bulk CSV uploads for dispute updates using a session-file approach. Files are stored on disk named by the database `session.id`. The service supports preview/edit functionality and creates jobs that are processed by background workers.
+A Spring Boot microservice for processing bulk CSV uploads for dispute updates using a session-file approach. Files are stored on disk named by the database `session.id`. The service supports preview/edit functionality, proof file uploads, and creates jobs that are processed by background workers.
+
+> **Latest Update**: Enhanced proof file management with realistic workflow - proof files are now uploaded separately via dedicated API endpoints, making the system more user-friendly and scalable.
 
 ## Features
 
-- **CSV Upload & Validation**: Upload CSV files with automatic validation
+- **CSV Upload & Validation**: Upload CSV files with automatic validation and structured error responses
 - **Session Management**: Track upload sessions with optimistic locking
 - **Preview/Edit**: Preview CSV data and overwrite with edited versions
+- **Proof File Management**: Upload, download, and manage proof files for dispute rejections
 - **Background Processing**: RabbitMQ-based job processing with workers
 - **Atomic File Operations**: Safe file overwrites with backup creation
 - **Database Schema Management**: Flyway migrations for database setup
+- **CORS Support**: Configurable cross-origin resource sharing for web applications
+- **Structured Error Responses**: Detailed validation errors with row, column, and reason information
 - **Extensible Design**: Pluggable `DisputeUpdater` interface for custom processing logic
+
+## Proof File Workflow
+
+The system now uses a **realistic proof file management approach**:
+
+### **1. CSV Upload (Decisions Only)**
+Upload a clean CSV with just dispute decisions:
+```csv
+Unique Key,Action
+2214B8JO003524000000003524,ACCEPT
+2070EXNV012946000000012946,REJECT
+```
+
+### **2. Proof File Upload (Separate)**
+Upload proof files separately via the proof management API:
+```bash
+# Upload proof for a specific dispute
+curl -X POST http://localhost:8080/api/proofs/upload \
+  -F "file=@2070EXNV012946000000012946.pdf"
+```
+
+### **3. Validation Process**
+- ✅ **ACCEPT actions**: No proof required
+- ✅ **REJECT actions**: Must have uploaded proof file
+- ✅ **System checks**: Actual file existence, not CSV references
+
+### **4. Benefits of This Approach**
+- **Clean CSV format**: No file references cluttering data
+- **Real file management**: Actual files with proper metadata
+- **Better UX**: Upload files naturally, not as text
+- **Scalable**: Large files don't bloat CSV
+- **Backward compatible**: Won't break if proof column exists in CSV
 
 ## Architecture
 
@@ -82,6 +119,14 @@ curl http://localhost:8080/actuator/health
 open http://localhost:15672
 # Username: admin, Password: admin123
 ```
+
+### 5. API Documentation
+
+Access the interactive API documentation:
+
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **ReDoc**: http://localhost:8080/redoc.html
+- **OpenAPI JSON**: http://localhost:8080/api-docs
 
 ## API Documentation
 
@@ -207,27 +252,197 @@ Download the original session file.
 curl http://localhost:8080/api/sessions/1/file
 ```
 
+### 7. Upload Proof File
+
+**POST** `/api/proofs/upload`
+
+Upload a proof file for a dispute. The filename should be the dispute's unique code.
+
+```bash
+curl -X POST http://localhost:8080/api/proofs/upload \
+  -F "file=@2214B8JO003524000000003524.pdf"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Proof uploaded successfully",
+  "uniqueCode": "2214B8JO003524000000003524",
+  "filePath": "/path/to/proof/file.pdf"
+}
+```
+
+### 8. Download Proof File
+
+**GET** `/api/proofs/download/{uniqueCode}`
+
+Download a proof file for a dispute.
+
+```bash
+curl http://localhost:8080/api/proofs/download/2214B8JO003524000000003524
+```
+
+### 9. Check Proof Status
+
+**GET** `/api/proofs/status/{uniqueCode}`
+
+Check if a proof file exists for a dispute.
+
+```bash
+curl http://localhost:8080/api/proofs/status/2214B8JO003524000000003524
+```
+
+**Response:**
+```json
+{
+  "uniqueCode": "2214B8JO003524000000003524",
+  "proofExists": true,
+  "filePath": "/path/to/proof/file.pdf"
+}
+```
+
+### 10. Delete Proof File
+
+**DELETE** `/api/proofs/delete/{uniqueCode}`
+
+Delete a proof file for a dispute.
+
+```bash
+curl -X DELETE http://localhost:8080/api/proofs/delete/2214B8JO003524000000003524
+```
+
+### 11. Get Sessions List
+
+**GET** `/api/sessions?page=0&size=10&status=VALIDATED&uploadedBy=admin`
+
+Get a paginated list of sessions with optional filters.
+
+```bash
+curl "http://localhost:8080/api/sessions?page=0&size=10&status=VALIDATED"
+```
+
+**Response:**
+```json
+{
+  "sessions": [
+    {
+      "id": 1,
+      "uploadedBy": "admin",
+      "fileName": "disputes.csv",
+      "status": "VALIDATED",
+      "totalRows": 100,
+      "validRows": 95,
+      "invalidRows": 5,
+      "createdAt": "2024-10-09T15:30:00",
+      "updatedAt": "2024-10-09T15:30:00"
+    }
+  ],
+  "pagination": {
+    "currentPage": 0,
+    "pageSize": 10,
+    "totalPages": 1,
+    "totalElements": 1
+  }
+}
+```
+
+### 12. Get Jobs List
+
+**GET** `/api/jobs?page=0&size=10&status=COMPLETED&sessionId=1`
+
+Get a paginated list of jobs with optional filters.
+
+```bash
+curl "http://localhost:8080/api/jobs?page=0&size=10&status=COMPLETED"
+```
+
+**Response:**
+```json
+{
+  "jobs": [
+    {
+      "id": 1,
+      "sessionId": 1,
+      "status": "COMPLETED",
+      "totalRows": 100,
+      "processedRows": 100,
+      "successCount": 95,
+      "failureCount": 5,
+      "startedAt": "2024-10-09T15:30:00",
+      "completedAt": "2024-10-09T15:30:05"
+    }
+  ],
+  "pagination": {
+    "currentPage": 0,
+    "pageSize": 10,
+    "totalPages": 1,
+    "totalElements": 1
+  }
+}
+```
+
 ## Sample CSV Format
 
 Create a file named `sample_disputes.csv`:
 
 ```csv
-dispute_id,action,reason,notes
-123,ACCEPT,Resolved,Good customer
-456,REJECT,Fraud detected,Multiple chargebacks
-789,ACCEPT,Resolved,Technical issue
-101,REJECT,Invalid claim,No supporting documentation
+Unique Key,Action
+2214B8JO003524000000003524,ACCEPT
+2070EXNV012946000000012946,REJECT
+207076AQ001506000000001506,ACCEPT
+2070PBU7010998000000010998,REJECT
+2057BSPY019789000000019789,ACCEPT
+20705RGZ002622000000002622,REJECT
+2057XLZH005707000000005707,ACCEPT
+20339RSD002783000000002783,REJECT
+2214D5VT005499000000005499,ACCEPT
 ```
 
 ### Required Columns
 
-- `dispute_id`: Numeric dispute identifier
-- `action`: Must be `ACCEPT` or `REJECT`
+- `Unique Key`: Alphanumeric dispute identifier (e.g., `2214B8JO003524000000003524`)
+- `Action`: Must be `ACCEPT` or `REJECT` (case-insensitive)
 
 ### Optional Columns
 
-- `reason`: Reason for the action
-- `notes`: Additional notes
+- `Proof(Optional)`: Proof file reference (optional - system will check for uploaded proof files for REJECT actions)
+
+### Validation Rules
+
+1. **Unique Key**: Must be alphanumeric format
+2. **Action**: Must be `ACCEPT` or `REJECT` (case-insensitive)
+3. **Proof Requirement**: For `REJECT` actions, proof file must be uploaded separately via `/api/proofs/upload` endpoint
+4. **File Naming**: Proof files should be named with the dispute's unique code (e.g., `2214B8JO003524000000003524.pdf`)
+5. **Backward Compatibility**: CSV can include `Proof(Optional)` column - system will ignore it and check actual uploaded files
+6. **Header Flexibility**: Headers are trimmed and case-insensitive for better compatibility
+
+### Structured Error Responses
+
+When validation fails, the API returns structured error objects:
+
+```json
+{
+  "error": "Validation failed",
+  "validationErrors": [
+    {
+      "row": 0,
+      "column": "HEADER",
+      "reason": "Missing required column: Unique Key"
+    },
+    {
+      "row": 5,
+      "column": "Action",
+      "reason": "Invalid action value 'PENDING'. Must be one of: [ACCEPT, REJECT, Accept, Reject]"
+    },
+    {
+      "row": 3,
+      "column": "Proof(Optional)",
+      "reason": "Proof is mandatory when action is 'REJECT'. Please provide proof file or upload proof separately."
+    }
+  ]
+}
+```
 
 ## Configuration
 
@@ -236,9 +451,18 @@ dispute_id,action,reason,notes
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `BULK_FILES_BASE_PATH` | `./uploads` | Base directory for session files |
+| `BULK_PROOFS_BASE_PATH` | `./proofs` | Base directory for proof files |
+| `BULK_PROOFS_MAX_SIZE_MB` | `10` | Maximum proof file size in MB |
+| `BULK_PROOFS_ALLOWED_EXTENSIONS` | `pdf,jpg,jpeg,png,doc,docx` | Allowed proof file extensions |
+| `BULK_PROOFS_REPLACE_EXISTING` | `true` | Allow replacing existing proof files |
 | `MAX_PREVIEW_ROWS` | `200` | Maximum rows in preview |
 | `MAX_UPLOAD_SIZE_MB` | `50` | Maximum file size in MB |
 | `SESSION_TTL_DAYS` | `7` | Session cleanup TTL |
+| `CORS_ALLOWED_ORIGINS` | `*` | Allowed CORS origins (use `*` for development) |
+| `CORS_ALLOWED_METHODS` | `GET,POST,PUT,DELETE,OPTIONS` | Allowed CORS methods |
+| `CORS_ALLOWED_HEADERS` | `*` | Allowed CORS headers |
+| `CORS_ALLOW_CREDENTIALS` | `false` | Allow CORS credentials |
+| `CORS_MAX_AGE` | `3600` | CORS preflight cache time |
 | `SPRING_DATASOURCE_URL` | `jdbc:mysql://localhost:3306/bulk_dispute_db` | Database URL |
 | `SPRING_DATASOURCE_USERNAME` | `bulkuser` | Database username |
 | `SPRING_DATASOURCE_PASSWORD` | `bulkpwd` | Database password |
@@ -260,9 +484,80 @@ spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:bulkpwd}
 # File Storage
 bulk.files.base-path=${BULK_FILES_BASE_PATH:./uploads}
 
+# Proof Files Storage
+bulk.proofs.base-path=${BULK_PROOFS_BASE_PATH:./proofs}
+bulk.proofs.max-size-mb=${BULK_PROOFS_MAX_SIZE_MB:10}
+bulk.proofs.allowed-extensions=${BULK_PROOFS_ALLOWED_EXTENSIONS:pdf,jpg,jpeg,png,doc,docx}
+bulk.proofs.replace-existing=${BULK_PROOFS_REPLACE_EXISTING:true}
+
+# CORS Configuration
+cors.allowed-origins=${CORS_ALLOWED_ORIGINS:*}
+cors.allowed-methods=${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+cors.allowed-headers=${CORS_ALLOWED_HEADERS:*}
+cors.allow-credentials=${CORS_ALLOW_CREDENTIALS:false}
+cors.max-age=${CORS_MAX_AGE:3600}
+
 # Validation
 bulk.validation.max-preview-rows=${MAX_PREVIEW_ROWS:200}
 bulk.validation.max-upload-size-mb=${MAX_UPLOAD_SIZE_MB:50}
+```
+
+### Production CORS Configuration
+
+For production, configure specific allowed origins:
+
+```properties
+# Production CORS settings
+cors.allowed-origins=https://yourdomain.com,https://app.yourdomain.com
+cors.allowed-methods=GET,POST,PUT,DELETE,OPTIONS
+cors.allowed-headers=Content-Type,Authorization,X-Requested-With,Accept,Origin
+cors.allow-credentials=true
+cors.max-age=3600
+```
+
+## Proof File Workflow
+
+### 1. Upload Proof Files
+
+Before or after uploading CSV files, upload proof files for disputes that will be rejected:
+
+```bash
+# Upload proof files (filename should be the dispute unique code)
+curl -X POST http://localhost:8080/api/proofs/upload \
+  -F "file=@2214B8JO003524000000003524.pdf"
+
+curl -X POST http://localhost:8080/api/proofs/upload \
+  -F "file=@2070EXNV012946000000012946.jpg"
+```
+
+### 2. Upload CSV with REJECT Actions
+
+Upload CSV file with REJECT actions. The system will validate that proof files exist for all REJECT actions:
+
+```bash
+curl -X POST http://localhost:8080/api/sessions \
+  -F "file=@disputes.csv" \
+  -F "uploadedBy=admin"
+```
+
+### 3. Job Processing
+
+When the job processes REJECT actions, it will:
+1. Check for uploaded proof files
+2. Update the `proof_of_reject_uri` field in `tbl_disputes` table
+3. Set `resolved_by`, `status`, and `resolved` fields
+
+### 4. Proof File Management
+
+```bash
+# Check if proof exists
+curl http://localhost:8080/api/proofs/status/2214B8JO003524000000003524
+
+# Download proof file
+curl http://localhost:8080/api/proofs/download/2214B8JO003524000000003524
+
+# Delete proof file
+curl -X DELETE http://localhost:8080/api/proofs/delete/2214B8JO003524000000003524
 ```
 
 ## Database Schema
@@ -272,6 +567,16 @@ The application uses Flyway for database migrations. The schema includes:
 - `bulk_dispute_session`: Session tracking with optimistic locking
 - `bulk_dispute_job`: Job management and status tracking
 - `bulk_dispute_job_audit`: Audit trail for job operations
+- `tbl_disputes`: Main disputes table (existing table, updated by job processing)
+
+### Key Fields in `tbl_disputes`:
+
+- `unique_log_code`: Dispute unique identifier
+- `status`: Dispute status (0=ACCEPT, 1=REJECT)
+- `resolved`: Resolution status (0=unresolved, 1=resolved)
+- `resolved_by`: User who resolved the dispute
+- `proof_of_reject_uri`: Path to proof file for rejections
+- `date_modified`: Last modification timestamp
 
 ## Testing
 
@@ -378,6 +683,26 @@ curl http://localhost:8080/actuator/health/db
 curl http://localhost:8080/actuator/health/rabbit
 ```
 
+## Recent Updates
+
+### **Proof File Management Improvements**
+- **Realistic Workflow**: Proof files are now uploaded separately via dedicated API endpoints
+- **Clean CSV Format**: CSV files no longer require proof column references
+- **Better Validation**: System checks actual file existence instead of CSV text references
+- **Backward Compatible**: Existing CSVs with proof columns still work
+
+### **Enhanced Validation**
+- **Header Trimming**: Automatic trimming of CSV headers and data for better compatibility
+- **Case-Insensitive**: Headers and actions are now case-insensitive
+- **Structured Errors**: Detailed validation errors with row, column, and reason information
+- **Flexible Format**: Supports various CSV formats and spacing
+
+### **Improved User Experience**
+- **Cleaner Interface**: Simplified CSV format focuses on decisions only
+- **Real File Management**: Actual file uploads with proper metadata
+- **Better Error Messages**: Clear, actionable validation error messages
+- **Scalable Design**: Large proof files don't impact CSV processing
+
 ## Troubleshooting
 
 ### Common Issues
@@ -401,6 +726,18 @@ curl http://localhost:8080/actuator/health/rabbit
    - Check RabbitMQ queues: http://localhost:15672
    - Review worker logs
    - Verify file paths are accessible
+
+5. **Proof File Validation Fails**
+   - Ensure proof files are uploaded via `/api/proofs/upload` endpoint
+   - Check file naming matches dispute unique codes
+   - Verify proof files exist in configured directory
+   - Check file permissions and accessibility
+
+6. **CSV Validation Issues**
+   - Ensure headers are properly formatted (trimmed, case-insensitive)
+   - Check for BOM (Byte Order Mark) in CSV files
+   - Verify required columns: `Unique Key`, `Action`
+   - For REJECT actions, ensure proof files are uploaded separately
 
 ### Debug Mode
 

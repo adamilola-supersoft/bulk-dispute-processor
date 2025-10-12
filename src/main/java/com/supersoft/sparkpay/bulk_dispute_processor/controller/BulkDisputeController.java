@@ -3,6 +3,7 @@ package com.supersoft.sparkpay.bulk_dispute_processor.controller;
 import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeJob;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeJobRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionService;
+import com.supersoft.sparkpay.bulk_dispute_processor.service.ProofService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,9 @@ public class BulkDisputeController {
     
     @Autowired
     private BulkDisputeSessionService sessionService;
+    
+    @Autowired
+    private ProofService proofService;
 
     @Operation(summary = "Upload CSV file and create session", 
                description = "Upload a CSV file containing dispute data and create a new processing session")
@@ -63,7 +68,23 @@ public class BulkDisputeController {
                     content = @Content(schema = @Schema(example = """
                     {
                       "error": "Validation failed",
-                      "details": "Missing required column: Unique Key; Row 5: Invalid action value 'PENDING'. Must be one of: [ACCEPT, REJECT]"
+                      "validationErrors": [
+                        {
+                          "row": 0,
+                          "column": "HEADER",
+                          "reason": "Missing required column: Unique Key"
+                        },
+                        {
+                          "row": 5,
+                          "column": "Action",
+                          "reason": "Invalid action value 'PENDING'. Must be one of: [ACCEPT, REJECT, Accept, Reject]"
+                        },
+                        {
+                          "row": 3,
+                          "column": "Unique Key",
+                          "reason": "Missing required value"
+                        }
+                      ]
                     }
                     """))),
         @ApiResponse(responseCode = "500", description = "Internal server error",
@@ -83,8 +104,16 @@ public class BulkDisputeController {
         BulkDisputeSessionService.SessionUploadResult result = sessionService.uploadSession(file, uploadedBy);
         
         if (!result.isSuccess()) {
-            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                    .body(Map.of("error", result.getError()));
+            if (result.getValidationErrors() != null && !result.getValidationErrors().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                        .body(Map.of(
+                                "error", result.getError(),
+                                "validationErrors", result.getValidationErrors()
+                        ));
+            } else {
+                return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                        .body(Map.of("error", result.getError()));
+            }
         }
         
         return ResponseEntity.ok(Map.of(
@@ -615,6 +644,216 @@ public class BulkDisputeController {
             log.error("Error getting sessions", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to retrieve sessions: " + e.getMessage()));
+        }
+    }
+
+    // ===============================
+    // PROOF UPLOAD ENDPOINTS
+    // ===============================
+
+    @Operation(summary = "Upload proof file for dispute", 
+               description = "Upload a proof file for a dispute. The filename should be the dispute's unique code (e.g., '2214B8JO003524000000003524.pdf')")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Proof uploaded successfully",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "success": true,
+                      "message": "Proof uploaded successfully",
+                      "uniqueCode": "2214B8JO003524000000003524",
+                      "filePath": "/path/to/proof/file.pdf"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "400", description = "Invalid request",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Proof file is empty"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Failed to upload proof: File too large"
+                    }
+                    """)))
+    })
+    @PostMapping(value = "/proofs/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadProof(
+            @Parameter(description = "Proof file to upload (filename should be the dispute unique code)", required = true)
+            @RequestParam("file") MultipartFile file) {
+        
+        try {
+            // Extract unique code from filename
+            String originalFilename = file.getOriginalFilename();
+            if (originalFilename == null || originalFilename.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "File must have a valid filename (should be the dispute unique code)"));
+            }
+            
+            // Remove file extension to get unique code
+            String uniqueCode = extractUniqueCodeFromFilename(originalFilename);
+            if (uniqueCode == null || uniqueCode.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "Invalid filename format. Filename should be the dispute unique code (e.g., '2214B8JO003524000000003524.pdf')"));
+            }
+            
+            String filePath = proofService.uploadProof(uniqueCode, file);
+            
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Proof uploaded successfully",
+                    "uniqueCode", uniqueCode,
+                    "filePath", filePath
+            ));
+            
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid proof upload request: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error uploading proof", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to upload proof: " + e.getMessage()));
+        }
+    }
+    
+    private String extractUniqueCodeFromFilename(String filename) {
+        // Remove file extension
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex == -1) {
+            return filename; // No extension, assume entire filename is unique code
+        }
+        return filename.substring(0, lastDotIndex);
+    }
+
+    @Operation(summary = "Download proof file for dispute", 
+               description = "Download the proof file for a specific dispute")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Proof file downloaded successfully"),
+        @ApiResponse(responseCode = "404", description = "Proof file not found",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Proof file not found"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Failed to download proof"
+                    }
+                    """)))
+    })
+    @GetMapping("/proofs/download/{uniqueCode}")
+    public ResponseEntity<?> downloadProof(
+            @Parameter(description = "Dispute unique code", required = true)
+            @PathVariable String uniqueCode) {
+        
+        try {
+            byte[] fileContent = proofService.downloadProof(uniqueCode);
+            String filePath = proofService.getProofFilePath(uniqueCode);
+            
+            // Extract filename from path
+            String filename = filePath.substring(filePath.lastIndexOf("/") + 1);
+            
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .body(fileContent);
+            
+        } catch (IOException e) {
+            log.warn("Proof file not found for uniqueCode: {}", uniqueCode);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Proof file not found"));
+        } catch (Exception e) {
+            log.error("Error downloading proof for uniqueCode: {}", uniqueCode, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to download proof"));
+        }
+    }
+
+    @Operation(summary = "Check if proof exists for dispute", 
+               description = "Check if a proof file exists for a specific dispute")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Proof status retrieved successfully",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "uniqueCode": "2214B8JO003524000000003524",
+                      "proofExists": true,
+                      "filePath": "/path/to/proof/file.pdf"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Failed to check proof status"
+                    }
+                    """)))
+    })
+    @GetMapping("/proofs/status/{uniqueCode}")
+    public ResponseEntity<?> checkProofStatus(
+            @Parameter(description = "Dispute unique code", required = true)
+            @PathVariable String uniqueCode) {
+        
+        try {
+            boolean exists = proofService.proofExists(uniqueCode);
+            String filePath = exists ? proofService.getProofFilePath(uniqueCode) : null;
+            
+            return ResponseEntity.ok(Map.of(
+                    "uniqueCode", uniqueCode,
+                    "proofExists", exists,
+                    "filePath", filePath != null ? filePath : ""
+            ));
+            
+        } catch (Exception e) {
+            log.error("Error checking proof status for uniqueCode: {}", uniqueCode, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to check proof status"));
+        }
+    }
+
+    @Operation(summary = "Delete proof file for dispute", 
+               description = "Delete the proof file for a specific dispute")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Proof deleted successfully",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "success": true,
+                      "message": "Proof deleted successfully"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "404", description = "Proof file not found",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Proof file not found"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Failed to delete proof"
+                    }
+                    """)))
+    })
+    @DeleteMapping("/proofs/delete/{uniqueCode}")
+    public ResponseEntity<?> deleteProof(
+            @Parameter(description = "Dispute unique code", required = true)
+            @PathVariable String uniqueCode) {
+        
+        try {
+            boolean deleted = proofService.deleteProof(uniqueCode);
+            
+            if (deleted) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "Proof deleted successfully"
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Proof file not found"));
+            }
+            
+        } catch (Exception e) {
+            log.error("Error deleting proof for uniqueCode: {}", uniqueCode, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to delete proof"));
         }
     }
 

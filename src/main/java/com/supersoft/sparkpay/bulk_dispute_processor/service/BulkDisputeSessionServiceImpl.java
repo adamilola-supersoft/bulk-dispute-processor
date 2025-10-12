@@ -65,7 +65,7 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
                 session.setErrorSummary(validationResult.getErrorSummary());
                 sessionRepository.save(session);
                 
-                return SessionUploadResult.failure("Validation failed: " + validationResult.getErrorSummary());
+                return SessionUploadResult.validationFailure(validationResult.getErrors());
             }
 
             session.setStatus(BulkDisputeSession.SessionStatus.VALIDATED);
