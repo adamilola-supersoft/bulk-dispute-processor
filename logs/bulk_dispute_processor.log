@@ -1,2 +1,8 @@
 2025-10-12T03:07:02.775+01:00  WARN 18332 --- [sparkpay.bulk_dispute_processor] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1d2h53m14s184ms696µs600ns).
 2025-10-12T16:12:32.594+01:00  WARN 18332 --- [sparkpay.bulk_dispute_processor] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=12h31m43s105ms634µs100ns).
+2025-10-12T17:08:14.891+01:00  INFO 18332 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2025-10-12T17:08:15.169+01:00  INFO 18332 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2025-10-12T17:08:15.179+01:00  INFO 18332 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-10-12T17:08:15.307+01:00  INFO 18332 --- [sparkpay.bulk_dispute_processor] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-10-12T17:08:15.408+01:00  INFO 18332 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-10-12T17:08:15.432+01:00  INFO 18332 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
