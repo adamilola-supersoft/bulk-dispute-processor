@@ -51,24 +51,30 @@ public interface BulkDisputeSessionService {
         private final int totalRows;
         private final int version;
         private final String error;
+        private final List<CsvValidationService.ValidationError> validationErrors;
         
         public SessionUploadResult(boolean success, Long sessionId, List<Map<String, String>> preview, 
-                                  int totalRows, int version, String error) {
+                                  int totalRows, int version, String error, List<CsvValidationService.ValidationError> validationErrors) {
             this.success = success;
             this.sessionId = sessionId;
             this.preview = preview;
             this.totalRows = totalRows;
             this.version = version;
             this.error = error;
+            this.validationErrors = validationErrors;
         }
         
         public static SessionUploadResult success(Long sessionId, List<Map<String, String>> preview, 
                                                 int totalRows, int version) {
-            return new SessionUploadResult(true, sessionId, preview, totalRows, version, null);
+            return new SessionUploadResult(true, sessionId, preview, totalRows, version, null, null);
         }
         
         public static SessionUploadResult failure(String error) {
-            return new SessionUploadResult(false, null, null, 0, 0, error);
+            return new SessionUploadResult(false, null, null, 0, 0, error, null);
+        }
+        
+        public static SessionUploadResult validationFailure(List<CsvValidationService.ValidationError> validationErrors) {
+            return new SessionUploadResult(false, null, null, 0, 0, "Validation failed", validationErrors);
         }
         
         // Getters
@@ -78,6 +84,7 @@ public interface BulkDisputeSessionService {
         public int getTotalRows() { return totalRows; }
         public int getVersion() { return version; }
         public String getError() { return error; }
+        public List<CsvValidationService.ValidationError> getValidationErrors() { return validationErrors; }
     }
     
     class SessionPreviewResult {
