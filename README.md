@@ -2,19 +2,25 @@
 
 A Spring Boot microservice for processing bulk CSV uploads for dispute updates using a session-file approach. Files are stored on disk named by the database `session.id`. The service supports preview/edit functionality, proof file uploads, and creates jobs that are processed by background workers.
 
-> **Latest Update**: Enhanced proof file management with realistic workflow - proof files are now uploaded separately via dedicated API endpoints, making the system more user-friendly and scalable.
+> **Latest Update**: Manual database setup (Flyway removed), enhanced session management with institution/merchant filtering, nested job objects in responses, and comprehensive failure recovery with automatic retry/resume mechanisms.
 
 ## Features
 
 - **CSV Upload & Validation**: Upload CSV files with automatic validation and structured error responses
-- **Session Management**: Track upload sessions with optimistic locking
+- **Session Management**: Track upload sessions with optimistic locking and status tracking
 - **Preview/Edit**: Preview CSV data and overwrite with edited versions
 - **Proof File Management**: Upload, download, and manage proof files for dispute rejections
-- **Background Processing**: RabbitMQ-based job processing with workers
+- **Background Processing**: RabbitMQ-based job processing with workers and automatic retry/resume
 - **Atomic File Operations**: Safe file overwrites with backup creation
-- **Database Schema Management**: Flyway migrations for database setup
+- **Database Schema Management**: Manual database setup with provided SQL script (Flyway removed)
+- **Institution/Merchant Filtering**: Filter sessions by institution code and merchant ID
+- **Nested Job Objects**: Job information returned as nested objects in session responses
 - **CORS Support**: Configurable cross-origin resource sharing for web applications
 - **Structured Error Responses**: Detailed validation errors with row, column, and reason information
+- **Production-Ready Connection Pooling**: HikariCP with configurable connection pool settings
+- **Failure Recovery**: Comprehensive retry and resume mechanisms for robust job processing
+- **Multi-Worker Support**: Atomic job claiming and row tracking to prevent race conditions
+- **Automatic Retry/Resume**: Scheduled tasks for automatic failure recovery
 - **Extensible Design**: Pluggable `DisputeUpdater` interface for custom processing logic
 
 ## Proof File Workflow
@@ -70,10 +76,30 @@ curl -X POST http://localhost:8080/api/proofs/upload \
 
 ### Prerequisites
 
-- Java 21+
+- Java 17+
 - Maven 3.6+
 - MySQL 8.0+
-- Docker & Docker Compose (for infrastructure)
+- RabbitMQ
+
+### Database Setup
+
+1. **Create the database:**
+```sql
+CREATE DATABASE bulk_dispute_db;
+```
+
+2. **Run the schema creation script:**
+```bash
+mysql -u bulkuser -p bulk_dispute_db < create_database_schema.sql
+```
+
+Or run the SQL commands directly in MySQL:
+```sql
+USE bulk_dispute_db;
+-- Copy and paste the contents of create_database_schema.sql
+```
+
+### Infrastructure Setup
 
 ### 1. Start Infrastructure
 
@@ -107,7 +133,7 @@ mvn spring-boot:run
 java -jar target/sparkpay.bulk_dispute_processor-0.0.1-SNAPSHOT.jar
 ```
 
-The application will start on `http://localhost:8080`
+The application will start on `http://localhost:8445` (configurable via `server.port` property)
 
 ### 4. Verify Setup
 
@@ -124,9 +150,9 @@ open http://localhost:15672
 
 Access the interactive API documentation:
 
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **ReDoc**: http://localhost:8080/redoc.html
-- **OpenAPI JSON**: http://localhost:8080/api-docs
+- **Swagger UI**: http://localhost:8445/swagger-ui.html
+- **ReDoc**: http://localhost:8445/redoc.html
+- **OpenAPI JSON**: http://localhost:8445/api-docs
 
 ## API Documentation
 
@@ -139,7 +165,9 @@ Upload a CSV file and create a new session.
 ```bash
 curl -X POST http://localhost:8080/api/sessions \
   -F "file=@sample_disputes.csv" \
-  -F "uploadedBy=admin"
+  -F "uploadedBy=admin" \
+  -F "institutionCode=BANK001" \
+  -F "merchantId=MERCHANT123"
 ```
 
 **Response:**
@@ -236,9 +264,114 @@ curl http://localhost:8080/api/jobs/1/status
   "processedRows": 100,
   "successCount": 95,
   "failureCount": 5,
+  "lastProcessedRow": 100,
+  "retryCount": 0,
+  "failureReason": null,
+  "failureType": null,
   "errorReportPath": "/uploads/1_errors_20241009_153000.csv",
   "startedAt": "2024-10-09T15:30:00",
   "completedAt": "2024-10-09T15:30:05"
+}
+```
+
+### 5.1. Resume Paused Job
+
+**POST** `/api/jobs/{jobId}/resume`
+
+Resume a paused job from the last successful row.
+
+```bash
+curl -X POST http://localhost:8080/api/jobs/1/resume
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Job resumed successfully",
+  "resumePoint": 45
+}
+```
+
+### 5.2. Pause Running Job
+
+**POST** `/api/jobs/{jobId}/pause`
+
+Pause a running job for maintenance or troubleshooting.
+
+```bash
+curl -X POST http://localhost:8080/api/jobs/1/pause \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Scheduled maintenance"}'
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Job paused successfully",
+  "reason": "Scheduled maintenance"
+}
+```
+
+### 5.3. Retry Failed Job
+
+**POST** `/api/jobs/{jobId}/retry`
+
+Manually retry a failed job.
+
+```bash
+curl -X POST http://localhost:8080/api/jobs/1/retry
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Job scheduled for retry",
+  "retryCount": 2
+}
+```
+
+### 5.4. Get Jobs List
+
+**GET** `/api/jobs`
+
+Get a paginated list of jobs with optional filters.
+
+```bash
+# Get all jobs
+curl http://localhost:8080/api/jobs
+
+# Filter by status
+curl "http://localhost:8080/api/jobs?status=FAILED"
+
+# Filter by session ID
+curl "http://localhost:8080/api/jobs?sessionId=1"
+
+# Pagination
+curl "http://localhost:8080/api/jobs?page=0&size=10"
+```
+
+**Response:**
+```json
+{
+  "content": [
+    {
+      "jobId": 1,
+      "sessionId": 1,
+      "status": "COMPLETED",
+      "totalRows": 100,
+      "processedRows": 100,
+      "successCount": 95,
+      "failureCount": 5,
+      "createdAt": "2024-10-09T15:30:00"
+    }
+  ],
+  "totalElements": 1,
+  "totalPages": 1,
+  "size": 10,
+  "number": 0
 }
 ```
 
@@ -314,12 +447,12 @@ curl -X DELETE http://localhost:8080/api/proofs/delete/2214B8JO00352400000000352
 
 ### 11. Get Sessions List
 
-**GET** `/api/sessions?page=0&size=10&status=VALIDATED&uploadedBy=admin`
+**GET** `/api/sessions?page=0&size=10&status=VALIDATED&uploadedBy=admin&institutionCode=BANK001&merchantId=MERCHANT123`
 
 Get a paginated list of sessions with optional filters.
 
 ```bash
-curl "http://localhost:8080/api/sessions?page=0&size=10&status=VALIDATED"
+curl "http://localhost:8080/api/sessions?page=0&size=10&status=VALIDATED&institutionCode=BANK001"
 ```
 
 **Response:**
@@ -328,14 +461,23 @@ curl "http://localhost:8080/api/sessions?page=0&size=10&status=VALIDATED"
   "sessions": [
     {
       "id": 1,
+      "institutionCode": "BANK001",
+      "merchantId": "MERCHANT123",
       "uploadedBy": "admin",
       "fileName": "disputes.csv",
-      "status": "VALIDATED",
+      "status": "CONFIRMED",
       "totalRows": 100,
       "validRows": 95,
       "invalidRows": 5,
       "createdAt": "2024-10-09T15:30:00",
-      "updatedAt": "2024-10-09T15:30:00"
+      "updatedAt": "2024-10-09T15:30:00",
+      "job": {
+        "id": 1,
+        "status": "COMPLETED",
+        "processedRows": 95,
+        "successCount": 90,
+        "failureCount": 5
+      }
     }
   ],
   "pagination": {
@@ -466,10 +608,25 @@ When validation fails, the API returns structured error objects:
 | `SPRING_DATASOURCE_URL` | `jdbc:mysql://localhost:3306/bulk_dispute_db` | Database URL |
 | `SPRING_DATASOURCE_USERNAME` | `bulkuser` | Database username |
 | `SPRING_DATASOURCE_PASSWORD` | `bulkpwd` | Database password |
+| `DB_MAX_CONNECTIONS` | `20` | Maximum database connections in pool |
+| `DB_MIN_IDLE` | `5` | Minimum idle connections in pool |
+| `DB_CONNECTION_TIMEOUT` | `30000` | Connection timeout in milliseconds |
+| `DB_IDLE_TIMEOUT` | `600000` | Idle connection timeout in milliseconds |
+| `DB_MAX_LIFETIME` | `1800000` | Maximum connection lifetime in milliseconds |
+| `DB_LEAK_DETECTION` | `60000` | Connection leak detection threshold |
+| `DB_VALIDATION_TIMEOUT` | `5000` | Connection validation timeout |
 | `SPRING_RABBITMQ_HOST` | `localhost` | RabbitMQ host |
 | `SPRING_RABBITMQ_PORT` | `5672` | RabbitMQ port |
 | `SPRING_RABBITMQ_USERNAME` | `admin` | RabbitMQ username |
 | `SPRING_RABBITMQ_PASSWORD` | `admin123` | RabbitMQ password |
+| `BULK_RETRY_ENABLED` | `true` | Enable automatic retry for failed jobs |
+| `BULK_RETRY_MAX_ATTEMPTS` | `3` | Maximum retry attempts per job |
+| `BULK_RETRY_INITIAL_DELAY_MS` | `30000` | Initial retry delay in milliseconds |
+| `BULK_RETRY_MAX_DELAY_MS` | `300000` | Maximum retry delay in milliseconds |
+| `BULK_RETRY_MULTIPLIER` | `2.0` | Exponential backoff multiplier |
+| `BULK_RETRY_SCHEDULE_INTERVAL_MS` | `60000` | Retry scheduler interval in milliseconds |
+| `BULK_RESUME_ENABLED` | `true` | Enable automatic resume for paused jobs |
+| `BULK_RESUME_SCHEDULE_INTERVAL_MS` | `30000` | Resume scheduler interval in milliseconds |
 
 ### Application Properties
 
@@ -480,6 +637,14 @@ The application uses `application.properties` with environment variable override
 spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/bulk_dispute_db}
 spring.datasource.username=${SPRING_DATASOURCE_USERNAME:bulkuser}
 spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:bulkpwd}
+
+# Database Connection Pooling (HikariCP)
+spring.datasource.hikari.maximum-pool-size=${DB_MAX_CONNECTIONS:20}
+spring.datasource.hikari.minimum-idle=${DB_MIN_IDLE:5}
+spring.datasource.hikari.connection-timeout=${DB_CONNECTION_TIMEOUT:30000}
+spring.datasource.hikari.idle-timeout=${DB_IDLE_TIMEOUT:600000}
+spring.datasource.hikari.max-lifetime=${DB_MAX_LIFETIME:1800000}
+spring.datasource.hikari.leak-detection-threshold=${DB_LEAK_DETECTION:60000}
 
 # File Storage
 bulk.files.base-path=${BULK_FILES_BASE_PATH:./uploads}
@@ -500,6 +665,18 @@ cors.max-age=${CORS_MAX_AGE:3600}
 # Validation
 bulk.validation.max-preview-rows=${MAX_PREVIEW_ROWS:200}
 bulk.validation.max-upload-size-mb=${MAX_UPLOAD_SIZE_MB:50}
+
+# Automatic Retry Configuration
+bulk.retry.enabled=${BULK_RETRY_ENABLED:true}
+bulk.retry.max-attempts=${BULK_RETRY_MAX_ATTEMPTS:3}
+bulk.retry.initial-delay-ms=${BULK_RETRY_INITIAL_DELAY_MS:30000}
+bulk.retry.max-delay-ms=${BULK_RETRY_MAX_DELAY_MS:300000}
+bulk.retry.multiplier=${BULK_RETRY_MULTIPLIER:2.0}
+bulk.retry.schedule-interval-ms=${BULK_RETRY_SCHEDULE_INTERVAL_MS:60000}
+
+# Automatic Resume Configuration
+bulk.resume.enabled=${BULK_RESUME_ENABLED:true}
+bulk.resume.schedule-interval-ms=${BULK_RESUME_SCHEDULE_INTERVAL_MS:30000}
 ```
 
 ### Production CORS Configuration
@@ -513,6 +690,227 @@ cors.allowed-methods=GET,POST,PUT,DELETE,OPTIONS
 cors.allowed-headers=Content-Type,Authorization,X-Requested-With,Accept,Origin
 cors.allow-credentials=true
 cors.max-age=3600
+```
+
+## Database Connection Pooling
+
+The application uses HikariCP for database connection pooling with production-ready defaults:
+
+### Connection Pool Configuration
+
+| **Setting** | **Default** | **Description** |
+|-------------|-------------|-----------------|
+| `maximum-pool-size` | `20` | Maximum concurrent connections |
+| `minimum-idle` | `5` | Minimum idle connections maintained |
+| `connection-timeout` | `30000ms` | Time to wait for connection from pool |
+| `idle-timeout` | `600000ms` | Time before idle connections are closed |
+| `max-lifetime` | `1800000ms` | Maximum connection lifetime |
+| `leak-detection-threshold` | `60000ms` | Time before connection leak warning |
+
+### Environment-Specific Tuning
+
+#### Development
+```bash
+export DB_MAX_CONNECTIONS=5
+export DB_MIN_IDLE=1
+export DB_CONNECTION_TIMEOUT=10000
+```
+
+#### Production
+```bash
+export DB_MAX_CONNECTIONS=20
+export DB_MIN_IDLE=5
+export DB_CONNECTION_TIMEOUT=30000
+export DB_LEAK_DETECTION=60000
+```
+
+#### High-Load Production
+```bash
+export DB_MAX_CONNECTIONS=50
+export DB_MIN_IDLE=10
+export DB_CONNECTION_TIMEOUT=30000
+export DB_MAX_LIFETIME=1800000
+```
+
+### Connection Pool Monitoring
+
+The application enables JMX monitoring for connection pool metrics:
+
+```bash
+# Monitor connection pool via JMX
+jconsole localhost:8080
+# Look for: com.zaxxer.hikari:type=Pool (bulk_dispute_db)
+```
+
+### Troubleshooting Connection Issues
+
+#### "Too many connections" Error
+```bash
+# Check current connections
+mysql> SHOW PROCESSLIST;
+mysql> SHOW STATUS LIKE 'Threads_connected';
+
+# Increase MySQL max_connections
+mysql> SET GLOBAL max_connections = 200;
+```
+
+#### Connection Leak Detection
+```bash
+# Check application logs for:
+# "Connection leak detection triggered"
+# "Connection is not available"
+```
+
+## Failure Recovery & Retry Mechanisms
+
+The system includes comprehensive failure recovery mechanisms for production robustness:
+
+### Automatic Retry System
+
+#### **Retry vs Resume - Key Differences**
+
+| **Aspect** | **Retry** | **Resume** |
+|------------|-----------|------------|
+| **Purpose** | Re-process failed rows due to transient issues | Continue paused jobs from last successful row |
+| **Trigger** | Transient failures (network, DB locks) | Infrastructure failures (DB down, file system) |
+| **Scope** | Individual failed rows | Entire job from checkpoint |
+| **Frequency** | Exponential backoff (30s → 60s → 120s) | Immediate when infrastructure recovers |
+| **Max Attempts** | 3 retries per job | Unlimited (until manual intervention) |
+
+#### **Failure Classification**
+
+The system automatically classifies failures into three categories:
+
+```java
+// Transient Failures (Auto-Retry)
+- Deadlock found
+- Lock wait timeout exceeded  
+- Communications link failure
+- Connection reset
+- Too many connections
+
+// Infrastructure Failures (Auto-Resume)
+- No such file or directory
+- Access denied
+- Disk full
+- Database is not available
+- Failed to connect to broker
+
+// Permanent Failures (No Retry)
+- Bad data format
+- Business rule violations
+- Invalid dispute codes
+- Missing required fields
+```
+
+#### **Automatic Retry Configuration**
+
+```properties
+# Retry settings (production defaults)
+bulk.retry.enabled=true
+bulk.retry.max-attempts=3
+bulk.retry.initial-delay-ms=30000
+bulk.retry.max-delay-ms=300000
+bulk.retry.multiplier=2.0
+bulk.retry.schedule-interval-ms=60000
+
+# Resume settings
+bulk.resume.enabled=true
+bulk.resume.schedule-interval-ms=30000
+```
+
+#### **Multi-Worker Safety**
+
+The system prevents race conditions when multiple workers process jobs:
+
+```java
+// Atomic job claiming prevents multiple workers
+UPDATE bulk_dispute_job 
+SET status = 'RUNNING', started_at = NOW() 
+WHERE id = ? AND status = 'PENDING'
+
+// Atomic row tracking prevents duplicate processing
+UPDATE bulk_dispute_job 
+SET last_processed_row = ? 
+WHERE id = ? AND last_processed_row < ?
+```
+
+### Manual Recovery APIs
+
+#### **Resume Paused Jobs**
+```bash
+# Resume a paused job from last successful row
+curl -X POST http://localhost:8080/api/jobs/123/resume
+
+# Response: {"success": true, "resumePoint": 45}
+```
+
+#### **Pause Running Jobs**
+```bash
+# Pause a running job (for maintenance)
+curl -X POST http://localhost:8080/api/jobs/123/pause \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "Scheduled maintenance"}'
+
+# Response: {"success": true, "reason": "Scheduled maintenance"}
+```
+
+#### **Retry Failed Jobs**
+```bash
+# Manually retry a failed job
+curl -X POST http://localhost:8080/api/jobs/123/retry
+
+# Response: {"success": true, "retryCount": 2}
+```
+
+### Session Status Updates
+
+Sessions are automatically updated based on job completion:
+
+| **Job Status** | **Session Status** | **Description** |
+|----------------|-------------------|----------------|
+| `COMPLETED` (0 failures) | `PROCESSED` | All rows processed successfully |
+| `COMPLETED` (some failures) | `PARTIALLY_PROCESSED` | Some rows failed, others succeeded |
+| `FAILED` | `FAILED` | Job failed permanently |
+| `PAUSED` | `PROCESSING` | Job paused, session still in progress |
+| `RUNNING` | `PROCESSING` | Job currently running |
+
+### Monitoring & Troubleshooting
+
+#### **Check Job Status**
+```bash
+# Get detailed job information
+curl http://localhost:8080/api/jobs/123/status
+
+# Response includes:
+# - Current status and progress
+# - Failure reason and type
+# - Retry count and next retry time
+# - Last processed row
+```
+
+#### **Monitor Automatic Retry**
+```bash
+# Check logs for automatic retry activity
+tail -f logs/application.log | grep -E "(AUTO_RETRY|AUTO_RESUME)"
+
+# Example log entries:
+# INFO  - Job 123 scheduled for automatic retry (attempt 2)
+# INFO  - Job 456 resumed automatically from row 45
+```
+
+#### **Database Monitoring**
+```sql
+-- Check jobs ready for retry
+SELECT id, status, retry_count, failure_reason, next_retry_at 
+FROM bulk_dispute_job 
+WHERE next_retry_at IS NOT NULL 
+AND next_retry_at <= NOW();
+
+-- Check paused jobs
+SELECT id, status, last_processed_row, failure_reason 
+FROM bulk_dispute_job 
+WHERE status = 'PAUSED';
 ```
 
 ## Proof File Workflow
@@ -562,12 +960,20 @@ curl -X DELETE http://localhost:8080/api/proofs/delete/2214B8JO00352400000000352
 
 ## Database Schema
 
-The application uses Flyway for database migrations. The schema includes:
+The application uses manual database setup with the provided SQL script. The schema includes:
 
-- `bulk_dispute_session`: Session tracking with optimistic locking
-- `bulk_dispute_job`: Job management and status tracking
+- `bulk_dispute_session`: Session tracking with institution/merchant fields and optimistic locking
+- `bulk_dispute_job`: Job management and status tracking with retry capabilities
 - `bulk_dispute_job_audit`: Audit trail for job operations
 - `tbl_disputes`: Main disputes table (existing table, updated by job processing)
+
+### Key Fields in `bulk_dispute_session`:
+
+- `institution_code`: Institution identifier (required)
+- `merchant_id`: Merchant identifier (required)
+- `file_size`: Size of uploaded file in bytes
+- `status`: Session status (UPLOADED, VALIDATED, CONFIRMED, PROCESSING, PROCESSED, PARTIALLY_PROCESSED, FAILED)
+- `version`: Optimistic locking version number
 
 ### Key Fields in `tbl_disputes`:
 
@@ -606,7 +1012,9 @@ mvn test -Dtest=*IntegrationTest
    ```bash
    curl -X POST http://localhost:8080/api/sessions \
      -F "file=@sample_disputes.csv" \
-     -F "uploadedBy=test"
+     -F "uploadedBy=test" \
+     -F "institutionCode=BANK001" \
+     -F "merchantId=MERCHANT123"
    ```
 
 2. **Preview Data**:
@@ -739,6 +1147,16 @@ curl http://localhost:8080/actuator/health/rabbit
    - Verify required columns: `Unique Key`, `Action`
    - For REJECT actions, ensure proof files are uploaded separately
 
+7. **Connection Pool Issues**
+   - Check database connection limits: `mysql> SHOW VARIABLES LIKE 'max_connections';`
+   - Monitor connection pool metrics via JMX: `jconsole localhost:8080`
+   - Adjust pool size based on load: `export DB_MAX_CONNECTIONS=50`
+
+8. **Retry/Resume Issues**
+   - Check automatic retry logs: `tail -f logs/application.log | grep AUTO_RETRY`
+   - Verify retry configuration: `curl http://localhost:8080/actuator/configprops | grep bulk.retry`
+   - Monitor job status: `curl http://localhost:8080/api/jobs/123/status`
+
 ### Debug Mode
 
 ```bash
@@ -746,6 +1164,57 @@ curl http://localhost:8080/actuator/health/rabbit
 export LOGGING_LEVEL_COM_SUPERSOFT=DEBUG
 mvn spring-boot:run
 ```
+
+## Recent Updates
+
+### v2.1.0 - Manual Database Setup & Enhanced Session Management
+
+#### **Database Management**
+- ✅ **Flyway Removed**: Manual database setup with provided SQL script
+- ✅ **Schema Script**: Complete `create_database_schema.sql` for easy setup
+- ✅ **No Migration Dependencies**: Simplified deployment without Flyway
+
+#### **Enhanced Session Management**
+- ✅ **Institution/Merchant Fields**: Required fields for session tracking
+- ✅ **Advanced Filtering**: Filter sessions by institution code and merchant ID
+- ✅ **Nested Job Objects**: Job information returned as nested objects in responses
+- ✅ **Null Job Handling**: Sessions without jobs return `null` for job field
+
+#### **API Improvements**
+- ✅ **Updated Endpoints**: All session endpoints now require institution/merchant fields
+- ✅ **Enhanced Responses**: Nested job objects with complete job information
+- ✅ **Better Filtering**: Status filters for both sessions and jobs endpoints
+
+### v2.0.0 - Production-Ready Enhancements
+
+#### **Database Connection Pooling**
+- ✅ **HikariCP Integration**: Production-ready connection pooling with configurable settings
+- ✅ **Connection Monitoring**: JMX metrics and leak detection
+- ✅ **Environment Tuning**: Development, production, and high-load configurations
+
+#### **Comprehensive Failure Recovery**
+- ✅ **Automatic Retry System**: Exponential backoff for transient failures
+- ✅ **Automatic Resume System**: Infrastructure failure recovery
+- ✅ **Failure Classification**: Transient, Permanent, Infrastructure categorization
+- ✅ **Multi-Worker Safety**: Atomic job claiming and row tracking
+
+#### **Enhanced Job Processing**
+- ✅ **Session Status Updates**: Automatic session status based on job completion
+- ✅ **Manual Recovery APIs**: Resume, pause, and retry endpoints
+- ✅ **Job Monitoring**: Detailed job status with retry information
+- ✅ **Atomic Updates**: Race condition prevention in multi-worker environments
+
+#### **Production Configuration**
+- ✅ **Environment Variables**: Comprehensive configuration via environment
+- ✅ **Connection Pool Settings**: Tuned for production workloads
+- ✅ **Retry/Resume Settings**: Configurable automatic recovery
+- ✅ **Monitoring Integration**: JMX and logging for operational visibility
+
+#### **API Enhancements**
+- ✅ **Job Management**: `/api/jobs` with filtering and pagination
+- ✅ **Recovery Endpoints**: `/api/jobs/{id}/resume`, `/api/jobs/{id}/pause`, `/api/jobs/{id}/retry`
+- ✅ **Enhanced Responses**: Detailed job status with retry information
+- ✅ **Connection Pooling**: Production-ready database connection management
 
 ## License
 

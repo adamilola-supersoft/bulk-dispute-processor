@@ -20,13 +20,19 @@ public class BulkDisputeJob {
     private int processedRows;
     private int successCount;
     private int failureCount;
+    private int lastProcessedRow;
     private String errorReportPath;
+    private int retryCount;
+    private String failureReason;
+    private String failureType;
+    private LocalDateTime lastRetryAt;
+    private LocalDateTime nextRetryAt;
     private LocalDateTime startedAt;
     private LocalDateTime completedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public enum JobStatus {
-        PENDING, RUNNING, COMPLETED, FAILED
+        PENDING, RUNNING, PAUSED, COMPLETED, FAILED
     }
 }

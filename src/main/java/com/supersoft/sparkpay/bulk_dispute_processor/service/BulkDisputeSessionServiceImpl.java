@@ -35,15 +35,18 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
     private JobMessagePublisher messagePublisher;
 
     @Override
-    public SessionUploadResult uploadSession(MultipartFile file, String uploadedBy) {
+    public SessionUploadResult uploadSession(MultipartFile file, String uploadedBy, String institutionCode, String merchantId) {
         try {
             log.info("Uploading session file: {}", file.getOriginalFilename());
 
             String tempFilePath = "temp_" + System.currentTimeMillis() + ".csv";
             BulkDisputeSession session = BulkDisputeSession.builder()
+                    .institutionCode(institutionCode)
+                    .merchantId(merchantId)
                     .uploadedBy(uploadedBy)
                     .filePath(tempFilePath)
                     .fileName(file.getOriginalFilename())
+                    .fileSize(file.getSize())
                     .status(BulkDisputeSession.SessionStatus.UPLOADED)
                     .totalRows(0)
                     .validRows(0)
@@ -62,7 +65,6 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
             
             if (!validationResult.isValid()) {
                 session.setStatus(BulkDisputeSession.SessionStatus.UPLOADED);
-                session.setErrorSummary(validationResult.getErrorSummary());
                 sessionRepository.save(session);
                 
                 return SessionUploadResult.validationFailure(validationResult.getErrors());
@@ -201,10 +203,10 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
     }
 
     @Override
-    public SessionListResult getSessions(int page, int size, String status, String uploadedBy) {
+    public SessionListResult getSessions(int page, int size, String status, String uploadedBy, String institutionCode, String merchantId) {
         try {
-            List<SessionSummary> sessions = sessionRepository.findSessionsWithPagination(page, size, status, uploadedBy);
-            long totalElements = sessionRepository.countSessions(status, uploadedBy);
+            List<SessionSummary> sessions = sessionRepository.findSessionsWithPagination(page, size, status, uploadedBy, institutionCode, merchantId);
+            long totalElements = sessionRepository.countSessions(status, uploadedBy, institutionCode, merchantId);
             int totalPages = (int) Math.ceil((double) totalElements / size);
             
             return SessionListResult.success(sessions, totalPages, totalElements, page, size);

@@ -4,6 +4,9 @@ import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeJob;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeJobRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionService;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.ProofService;
+import com.supersoft.sparkpay.bulk_dispute_processor.service.EnhancedJobProcessor;
+import com.supersoft.sparkpay.bulk_dispute_processor.service.JobResumeService;
+import com.supersoft.sparkpay.bulk_dispute_processor.service.JobRetryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,6 +43,15 @@ public class BulkDisputeController {
     
     @Autowired
     private ProofService proofService;
+    
+    @Autowired
+    private EnhancedJobProcessor enhancedJobProcessor;
+    
+    @Autowired
+    private JobResumeService jobResumeService;
+    
+    @Autowired
+    private JobRetryService jobRetryService;
 
     @Operation(summary = "Upload CSV file and create session", 
                description = "Upload a CSV file containing dispute data and create a new processing session")
@@ -99,9 +111,13 @@ public class BulkDisputeController {
             @Parameter(description = "CSV file containing dispute data", required = true)
             @RequestParam("file") MultipartFile file,
             @Parameter(description = "User who uploaded the file")
-            @RequestParam(value = "uploadedBy", defaultValue = "system") String uploadedBy) {
+            @RequestParam(value = "uploadedBy", defaultValue = "system") String uploadedBy,
+            @Parameter(description = "Institution code")
+            @RequestParam("institutionCode") String institutionCode,
+            @Parameter(description = "Merchant ID")
+            @RequestParam("merchantId") String merchantId) {
         
-        BulkDisputeSessionService.SessionUploadResult result = sessionService.uploadSession(file, uploadedBy);
+        BulkDisputeSessionService.SessionUploadResult result = sessionService.uploadSession(file, uploadedBy, institutionCode, merchantId);
         
         if (!result.isSuccess()) {
             if (result.getValidationErrors() != null && !result.getValidationErrors().isEmpty()) {
@@ -621,9 +637,13 @@ public class BulkDisputeController {
             @Parameter(description = "Filter by session status")
             @RequestParam(value = "status", required = false) String status,
             @Parameter(description = "Filter by uploaded by user")
-            @RequestParam(value = "uploadedBy", required = false) String uploadedBy) {
+            @RequestParam(value = "uploadedBy", required = false) String uploadedBy,
+            @Parameter(description = "Filter by institution code")
+            @RequestParam(value = "institutionCode", required = false) String institutionCode,
+            @Parameter(description = "Filter by merchant ID")
+            @RequestParam(value = "merchantId", required = false) String merchantId) {
         try {
-            BulkDisputeSessionService.SessionListResult result = sessionService.getSessions(page, size, status, uploadedBy);
+            BulkDisputeSessionService.SessionListResult result = sessionService.getSessions(page, size, status, uploadedBy, institutionCode, merchantId);
             
             if (!result.isSuccess()) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -854,6 +874,155 @@ public class BulkDisputeController {
             log.error("Error deleting proof for uniqueCode: {}", uniqueCode, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to delete proof"));
+        }
+    }
+
+    // ===============================
+    // RECOVERY APIs
+    // ===============================
+
+    @Operation(summary = "Resume a paused job", 
+               description = "Resume a job that was paused due to infrastructure issues")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Job resumed successfully",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "success": true,
+                      "message": "Job resumed successfully"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "404", description = "Job not found",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Job not found"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "400", description = "Job cannot be resumed",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Job is not paused"
+                    }
+                    """)))
+    })
+    @PostMapping("/jobs/{jobId}/resume")
+    public ResponseEntity<?> resumeJob(@PathVariable Long jobId) {
+        try {
+            boolean success = jobResumeService.resumeJob(jobId);
+            
+            if (success) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Job resumed successfully",
+                    "resumePoint", jobResumeService.getResumePoint(jobId)
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "Job cannot be resumed"));
+            }
+            
+        } catch (Exception e) {
+            log.error("Error resuming job: {}", jobId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to resume job"));
+        }
+    }
+
+    @Operation(summary = "Pause a running job", 
+               description = "Pause a job due to infrastructure issues")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Job paused successfully",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "success": true,
+                      "message": "Job paused successfully"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "404", description = "Job not found",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Job not found"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "400", description = "Job cannot be paused",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Job is not running"
+                    }
+                    """)))
+    })
+    @PostMapping("/jobs/{jobId}/pause")
+    public ResponseEntity<?> pauseJob(
+            @PathVariable Long jobId,
+            @RequestParam(required = false, defaultValue = "Manual pause") String reason) {
+        try {
+            boolean success = jobResumeService.pauseJob(jobId, reason);
+            
+            if (success) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Job paused successfully",
+                    "reason", reason
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "Job cannot be paused"));
+            }
+            
+        } catch (Exception e) {
+            log.error("Error pausing job: {}", jobId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to pause job"));
+        }
+    }
+
+    @Operation(summary = "Retry a failed row", 
+               description = "Retry processing a specific failed row for transient failures")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Row retry initiated successfully",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "success": true,
+                      "message": "Row retry initiated successfully"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "404", description = "Job not found",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Job not found"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "400", description = "Row cannot be retried",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Row cannot be retried"
+                    }
+                    """)))
+    })
+    @PostMapping("/jobs/{jobId}/retry")
+    public ResponseEntity<?> retryFailedRow(
+            @PathVariable Long jobId,
+            @RequestParam int rowNumber,
+            @RequestParam String rowData,
+            @RequestParam(required = false, defaultValue = "3") int maxRetries) {
+        try {
+            boolean success = jobRetryService.retryFailedRow(jobId, rowNumber, rowData, maxRetries);
+            
+            if (success) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Row retry initiated successfully",
+                    "rowNumber", rowNumber,
+                    "maxRetries", maxRetries
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "Row cannot be retried"));
+            }
+            
+        } catch (Exception e) {
+            log.error("Error retrying row {} for job {}: {}", rowNumber, jobId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to retry row"));
         }
     }
 

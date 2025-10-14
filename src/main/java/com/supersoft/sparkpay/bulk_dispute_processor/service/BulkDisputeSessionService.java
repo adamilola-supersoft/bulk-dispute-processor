@@ -12,7 +12,7 @@ public interface BulkDisputeSessionService {
     /**
      * Upload a CSV file and create a new session
      */
-    SessionUploadResult uploadSession(MultipartFile file, String uploadedBy);
+    SessionUploadResult uploadSession(MultipartFile file, String uploadedBy, String institutionCode, String merchantId);
     
     /**
      * Get preview data for a session
@@ -42,7 +42,7 @@ public interface BulkDisputeSessionService {
     /**
      * Get paginated list of sessions
      */
-    SessionListResult getSessions(int page, int size, String status, String uploadedBy);
+    SessionListResult getSessions(int page, int size, String status, String uploadedBy, String institutionCode, String merchantId);
     
     class SessionUploadResult {
         private final boolean success;
@@ -220,6 +220,8 @@ public interface BulkDisputeSessionService {
     
     class SessionSummary {
         private final Long id;
+        private final String institutionCode;
+        private final String merchantId;
         private final String uploadedBy;
         private final String fileName;
         private final String status;
@@ -228,10 +230,14 @@ public interface BulkDisputeSessionService {
         private final int invalidRows;
         private final String createdAt;
         private final String updatedAt;
+        private final JobSummary job;
         
-        public SessionSummary(Long id, String uploadedBy, String fileName, String status, 
-                            int totalRows, int validRows, int invalidRows, String createdAt, String updatedAt) {
+        public SessionSummary(Long id, String institutionCode, String merchantId, String uploadedBy, String fileName, String status, 
+                            int totalRows, int validRows, int invalidRows, String createdAt, String updatedAt,
+                            Long jobId, String jobStatus, int processedRows, int successCount, int failureCount) {
             this.id = id;
+            this.institutionCode = institutionCode;
+            this.merchantId = merchantId;
             this.uploadedBy = uploadedBy;
             this.fileName = fileName;
             this.status = status;
@@ -240,10 +246,13 @@ public interface BulkDisputeSessionService {
             this.invalidRows = invalidRows;
             this.createdAt = createdAt;
             this.updatedAt = updatedAt;
+            this.job = jobId != null ? new JobSummary(jobId, jobStatus, processedRows, successCount, failureCount) : null;
         }
         
         // Getters
         public Long getId() { return id; }
+        public String getInstitutionCode() { return institutionCode; }
+        public String getMerchantId() { return merchantId; }
         public String getUploadedBy() { return uploadedBy; }
         public String getFileName() { return fileName; }
         public String getStatus() { return status; }
@@ -252,5 +261,29 @@ public interface BulkDisputeSessionService {
         public int getInvalidRows() { return invalidRows; }
         public String getCreatedAt() { return createdAt; }
         public String getUpdatedAt() { return updatedAt; }
+        public JobSummary getJob() { return job; }
+    }
+    
+    class JobSummary {
+        private final Long id;
+        private final String status;
+        private final int processedRows;
+        private final int successCount;
+        private final int failureCount;
+        
+        public JobSummary(Long id, String status, int processedRows, int successCount, int failureCount) {
+            this.id = id;
+            this.status = status;
+            this.processedRows = processedRows;
+            this.successCount = successCount;
+            this.failureCount = failureCount;
+        }
+        
+        // Getters
+        public Long getId() { return id; }
+        public String getStatus() { return status; }
+        public int getProcessedRows() { return processedRows; }
+        public int getSuccessCount() { return successCount; }
+        public int getFailureCount() { return failureCount; }
     }
 }

@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +35,13 @@ public class BulkDisputeJobRepository {
                     .processedRows(rs.getInt("processed_rows"))
                     .successCount(rs.getInt("success_count"))
                     .failureCount(rs.getInt("failure_count"))
+                    .lastProcessedRow(rs.getInt("last_processed_row"))
                     .errorReportPath(rs.getString("error_report_path"))
+                    .retryCount(rs.getInt("retry_count"))
+                    .failureReason(rs.getString("failure_reason"))
+                    .failureType(rs.getString("failure_type"))
+                    .lastRetryAt(rs.getTimestamp("last_retry_at") != null ? rs.getTimestamp("last_retry_at").toLocalDateTime() : null)
+                    .nextRetryAt(rs.getTimestamp("next_retry_at") != null ? rs.getTimestamp("next_retry_at").toLocalDateTime() : null)
                     .startedAt(rs.getTimestamp("started_at") != null ? rs.getTimestamp("started_at").toLocalDateTime() : null)
                     .completedAt(rs.getTimestamp("completed_at") != null ? rs.getTimestamp("completed_at").toLocalDateTime() : null)
                     .createdAt(rs.getTimestamp("created_at").toLocalDateTime())
@@ -76,7 +83,7 @@ public class BulkDisputeJobRepository {
     }
 
     private BulkDisputeJob update(BulkDisputeJob job) {
-        String sql = "UPDATE bulk_dispute_job SET session_id=?, job_ref=?, status=?, total_rows=?, processed_rows=?, success_count=?, failure_count=?, error_report_path=?, started_at=?, completed_at=? WHERE id=?";
+        String sql = "UPDATE bulk_dispute_job SET session_id=?, job_ref=?, status=?, total_rows=?, processed_rows=?, success_count=?, failure_count=?, last_processed_row=?, error_report_path=?, retry_count=?, failure_reason=?, failure_type=?, last_retry_at=?, next_retry_at=?, started_at=?, completed_at=? WHERE id=?";
         
         jdbcTemplate.update(sql,
                 job.getSessionId(),
@@ -86,9 +93,15 @@ public class BulkDisputeJobRepository {
                 job.getProcessedRows(),
                 job.getSuccessCount(),
                 job.getFailureCount(),
+                job.getLastProcessedRow(),
                 job.getErrorReportPath(),
-                job.getStartedAt() != null ? java.sql.Timestamp.valueOf(job.getStartedAt()) : null,
-                job.getCompletedAt() != null ? java.sql.Timestamp.valueOf(job.getCompletedAt()) : null,
+                job.getRetryCount(),
+                job.getFailureReason(),
+                job.getFailureType(),
+                job.getLastRetryAt() != null ? Timestamp.valueOf(job.getLastRetryAt()) : null,
+                job.getNextRetryAt() != null ? Timestamp.valueOf(job.getNextRetryAt()) : null,
+                job.getStartedAt() != null ? Timestamp.valueOf(job.getStartedAt()) : null,
+                job.getCompletedAt() != null ? Timestamp.valueOf(job.getCompletedAt()) : null,
                 job.getId()
         );
         
@@ -173,6 +186,22 @@ public class BulkDisputeJobRepository {
         return jdbcTemplate.queryForObject(sql.toString(), Long.class, params.toArray());
     }
     
+    /**
+     * Find jobs that are ready for retry based on next_retry_at time and retry count
+     */
+    public List<BulkDisputeJob> findJobsReadyForRetry(LocalDateTime now, int maxRetryAttempts) {
+        String sql = "SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC";
+        return jdbcTemplate.query(sql, ROW_MAPPER, Timestamp.valueOf(now), maxRetryAttempts);
+    }
+
+    /**
+     * Find jobs by status
+     */
+    public List<BulkDisputeJob> findByStatus(BulkDisputeJob.JobStatus status) {
+        String sql = "SELECT * FROM bulk_dispute_job WHERE status = ?";
+        return jdbcTemplate.query(sql, ROW_MAPPER, status.name());
+    }
+
     private boolean isValidSortField(String sortBy) {
         return sortBy != null && (sortBy.equals("id") || sortBy.equals("status") || 
                 sortBy.equals("created_at") || sortBy.equals("completed_at") || 

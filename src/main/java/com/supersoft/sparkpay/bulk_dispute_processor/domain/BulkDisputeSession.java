@@ -13,19 +13,21 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class BulkDisputeSession {
     private Long id;
+    private String institutionCode;
+    private String merchantId;
     private String uploadedBy;
     private String filePath;
     private String fileName;
+    private Long fileSize;
     private SessionStatus status;
     private int totalRows;
     private int validRows;
     private int invalidRows;
-    private String errorSummary;
     private int version;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public enum SessionStatus {
-        UPLOADED, VALIDATED, PREVIEWED, CONFIRMED,PROCESSING,FAILED
+        UPLOADED, VALIDATED, PREVIEWED, CONFIRMED, PROCESSING, PROCESSED, PARTIALLY_PROCESSED, FAILED
     }
 }
