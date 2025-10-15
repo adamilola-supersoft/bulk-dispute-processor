@@ -14,17 +14,16 @@ public class DisputeRepository {
 
     public int updateDisputeStatus(String uniqueKey, String resolvedBy, int status, int resolved, String proofUri) {
         String sql = "UPDATE tbl_disputes " +
-                    "SET resolved_by = ?, status = ?, resolved = ?, " +
-                    "date_modified = now(), proof_of_reject_uri = ? " +
-                    "WHERE unique_log_code = ? AND resolved = 0";
-        
-        log.info("Updating dispute: uniqueKey={}, resolvedBy={}, status={}, resolved={}, proofUri={}", 
+                "SET resolved_by = ?, status = ?, resolved = ?, " +
+                "date_modified = now(), proof_of_reject_uri = ? " +
+                "WHERE unique_log_code = ? AND status = -1 AND resolved = 0";
+
+        log.info("Updating dispute: uniqueKey={}, resolvedBy={}, status={}, resolved={}, proofUri={}",
                 uniqueKey, resolvedBy, status, resolved, proofUri);
-        log.info("Executing SQL: {}", sql);
-        
         try {
-            int result = jdbcTemplate.update(sql, 
-                resolvedBy, status, resolved, proofUri, uniqueKey);
+            int result = jdbcTemplate.update(sql,
+                    resolvedBy, status, resolved, proofUri, uniqueKey);
+
             log.info("Update result: {} rows affected", result);
             return result;
         } catch (Exception e) {
