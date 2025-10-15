@@ -211,7 +211,7 @@ curl "http://localhost:8080/api/sessions/1/preview?rows=50&offset=0"
 
 **PUT** `/api/sessions/{sessionId}/file`
 
-Overwrite the session file with edited content (requires If-Match header for optimistic locking).
+Overwrite the session file with edited: content (requires If-Match header for optimistic locking).
 
 ```bash
 curl -X PUT http://localhost:8080/api/sessions/1/file \

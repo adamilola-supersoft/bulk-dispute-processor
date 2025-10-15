@@ -7,6 +7,7 @@ import com.supersoft.sparkpay.bulk_dispute_processor.service.ProofService;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.EnhancedJobProcessor;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.JobResumeService;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.JobRetryService;
+import com.supersoft.sparkpay.bulk_dispute_processor.service.CombinedValidationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -52,6 +53,9 @@ public class BulkDisputeController {
     
     @Autowired
     private JobRetryService jobRetryService;
+    
+    @Autowired
+    private CombinedValidationService combinedValidationService;
 
     @Operation(summary = "Upload CSV file and create session", 
                description = "Upload a CSV file containing dispute data and create a new processing session")
@@ -1023,6 +1027,109 @@ public class BulkDisputeController {
             log.error("Error retrying row {} for job {}: {}", rowNumber, jobId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to retry row"));
+        }
+    }
+
+    // ===============================
+    // COMBINED VALIDATION ENDPOINT
+    // ===============================
+
+    @Operation(summary = "Validate session and proof files", 
+               description = "Validate a CSV file along with corresponding proof files in a single request. " +
+                           "This endpoint performs all validations from the session and proof endpoints combined, " +
+                           "and saves the files to appropriate folders (CSV to uploads, proofs to proofs folder).")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Validation completed successfully",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "totals": {
+                        "requested": 5,
+                        "malformedRows": 0,
+                        "succeeded": 5,
+                        "failed": 0,
+                        "elapsedMs": 353
+                      },
+                      "accepted": {
+                        "slated": 2,
+                        "succeeded": 2,
+                        "failed": 0
+                      },
+                      "rejected": {
+                        "slated": 3,
+                        "succeeded": 3,
+                        "failed": 0,
+                        "missingReceipt": 0
+                      },
+                      "sessionId": 123
+                    }
+                    """))),
+        @ApiResponse(responseCode = "422", description = "Validation failed",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Validation failed",
+                      "validationErrors": [
+                        {
+                          "row": 0,
+                          "column": "HEADER",
+                          "reason": "Missing required column: Unique Key"
+                        },
+                        {
+                          "row": 5,
+                          "column": "Action",
+                          "reason": "Invalid action value 'PENDING'. Must be one of: [ACCEPT, REJECT]"
+                        },
+                        {
+                          "row": 3,
+                          "column": "Proof",
+                          "reason": "Proof file is mandatory for REJECT actions. Please provide proof file for: 2214B8JO003524000000003524"
+                        }
+                      ]
+                    }
+                    """))),
+        @ApiResponse(responseCode = "400", description = "Invalid request",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "CSV file is required"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Validation failed: File processing error"
+                    }
+                    """)))
+    })
+    @PostMapping(value = "/sessions/session-and-proof", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> validateSessionAndProof(
+            @Parameter(description = "CSV file containing dispute data", required = true)
+            @RequestParam("csvFile") MultipartFile csvFile,
+            @Parameter(description = "Proof files for REJECT actions (filename should be the dispute unique code)", required = false)
+            @RequestParam(value = "receiptFiles", required = false) List<MultipartFile> receiptFiles,
+            @Parameter(description = "User who uploaded the files")
+            @RequestParam(value = "uploadedBy", defaultValue = "system") String uploadedBy,
+            @Parameter(description = "Institution code")
+            @RequestParam("institutionCode") String institutionCode,
+            @Parameter(description = "Merchant ID")
+            @RequestParam("merchantId") String merchantId) {
+        
+        try {
+            Map<String, Object> result = combinedValidationService.validateSessionAndProofs(
+                    csvFile, receiptFiles, uploadedBy, institutionCode, merchantId);
+            
+            if (result.containsKey("error")) {
+                if (result.containsKey("validationErrors")) {
+                    return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(result);
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+                }
+            }
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            log.error("Error validating session and proof files", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Validation failed: " + e.getMessage()));
         }
     }
 
