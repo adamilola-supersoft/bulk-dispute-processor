@@ -85,6 +85,48 @@ public class ProofServiceImpl implements ProofService {
     }
 
     @Override
+    public String uploadProofWithoutValidation(String uniqueCode, MultipartFile file) throws IOException {
+        // Only check for empty file (basic safety check)
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("Proof file is empty");
+        }
+
+        // Create base directory
+        Path baseDir = Paths.get(basePath);
+        Files.createDirectories(baseDir);
+
+        // Check if proof already exists and handle based on configuration
+        String existingFilePath = getProofFilePath(uniqueCode);
+        if (existingFilePath != null) {
+            if (replaceExisting) {
+                try {
+                    Files.deleteIfExists(Paths.get(existingFilePath));
+                    log.info("Deleted existing proof file: {}", existingFilePath);
+                } catch (IOException e) {
+                    log.warn("Failed to delete existing proof file: {}", existingFilePath, e);
+                }
+            } else {
+                throw new IllegalArgumentException("Proof already exists for unique code: " + uniqueCode + ". Set bulk.proofs.replace-existing=true to allow replacement.");
+            }
+        }
+
+        // Generate filename using unique code and timestamp
+        String originalFilename = file.getOriginalFilename();
+        String fileExtension = getFileExtension(originalFilename);
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String filename = uniqueCode + "_" + timestamp + "." + fileExtension;
+        Path filePath = baseDir.resolve(filename);
+
+        // Save file
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        log.info("Proof uploaded successfully: uniqueCode={}, filename={}, size={} bytes", 
+                uniqueCode, filename, file.getSize());
+
+        return filePath.toString();
+    }
+
+    @Override
     public String getProofFilePath(String uniqueCode) {
         Path baseDir = Paths.get(basePath);
         if (!Files.exists(baseDir)) {

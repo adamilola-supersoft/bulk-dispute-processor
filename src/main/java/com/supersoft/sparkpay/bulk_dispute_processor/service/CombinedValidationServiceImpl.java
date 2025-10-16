@@ -6,6 +6,7 @@ import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeSessi
 import com.supersoft.sparkpay.bulk_dispute_processor.util.CsvParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,12 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
     
     @Autowired
     private BulkDisputeSessionRepository sessionRepository;
+    
+    @Value("${bulk.proofs.max-size-mb:10}")
+    private int maxSizeMb;
+    
+    @Value("${bulk.proofs.allowed-extensions:pdf,jpg,jpeg,png,doc,docx}")
+    private String allowedExtensions;
 
     @Override
     public CombinedValidationResult validateCsvWithProofs(MultipartFile csvFile, List<MultipartFile> proofFiles) {
@@ -138,6 +145,35 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
         return proofFileMap;
     }
     
+    private void validateProofFile(MultipartFile proofFile, String uniqueCode, int rowNumber, CombinedValidationResult result) {
+        // Validate file size
+        if (proofFile.getSize() > (long) maxSizeMb * 1024 * 1024) {
+            result.addError(rowNumber, "Proof", "Proof file too large for " + uniqueCode + ". Maximum size: " + maxSizeMb + "MB");
+            return;
+        }
+
+        // Validate file extension
+        String originalFilename = proofFile.getOriginalFilename();
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
+            result.addError(rowNumber, "Proof", "Proof file must have a valid filename for " + uniqueCode);
+            return;
+        }
+
+        String fileExtension = getFileExtension(originalFilename);
+        List<String> allowedExts = Arrays.asList(allowedExtensions.split(","));
+        if (!allowedExts.contains(fileExtension.toLowerCase())) {
+            result.addError(rowNumber, "Proof", "Invalid file type for " + uniqueCode + ". Allowed extensions: " + allowedExtensions);
+        }
+    }
+    
+    private String getFileExtension(String filename) {
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex == -1) {
+            return "";
+        }
+        return filename.substring(lastDotIndex + 1);
+    }
+    
     private String extractUniqueCodeFromFilename(String filename) {
         int lastDotIndex = filename.lastIndexOf('.');
         if (lastDotIndex == -1) {
@@ -193,6 +229,13 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
             if (!proofFileMap.containsKey(uniqueKey.trim())) {
                 result.addError(rowNumber, "Proof", "Proof file is mandatory for REJECT actions. Please provide proof file for: " + uniqueKey.trim());
                 rowIsValid = false;
+            } else {
+                // Validate the proof file if it exists
+                MultipartFile proofFile = proofFileMap.get(uniqueKey.trim());
+                validateProofFile(proofFile, uniqueKey.trim(), rowNumber, result);
+                if (result.getErrors().stream().anyMatch(error -> error.getRow() == rowNumber && "Proof".equals(error.getColumn()))) {
+                    rowIsValid = false;
+                }
             }
         }
         
@@ -240,7 +283,7 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
             sessionRepository.save(session);
             result.setCsvFilePath(csvFilePath);
             
-            // Save proof files to proofs folder
+            // Save proof files to proofs folder (without validation since we already validated)
             List<String> savedProofPaths = new java.util.ArrayList<>();
             for (MultipartFile proofFile : proofFiles) {
                 if (proofFile != null && !proofFile.isEmpty()) {
@@ -249,7 +292,7 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
                         String uniqueCode = extractUniqueCodeFromFilename(originalFilename);
                         if (uniqueCode != null && !uniqueCode.trim().isEmpty()) {
                             try {
-                                String proofFilePath = proofService.uploadProof(uniqueCode.trim(), proofFile);
+                                String proofFilePath = proofService.uploadProofWithoutValidation(uniqueCode.trim(), proofFile);
                                 savedProofPaths.add(proofFilePath);
                             } catch (Exception e) {
                                 log.warn("Failed to save proof file for unique code {}: {}", uniqueCode, e.getMessage());
