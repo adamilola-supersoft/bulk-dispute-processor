@@ -1113,10 +1113,21 @@ public class BulkDisputeController {
             @RequestParam("merchantId") String merchantId) {
         
         try {
+            log.info("Received request for session and proof validation. CSV: {}, Proof files: {}", 
+                    csvFile != null ? csvFile.getOriginalFilename() : "null",
+                    receiptFiles != null ? receiptFiles.size() : 0);
+            
             Map<String, Object> result = combinedValidationService.validateSessionAndProofs(
                     csvFile, receiptFiles, uploadedBy, institutionCode, merchantId);
             
+            if (result == null) {
+                log.error("Service returned null result");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "Service returned null result"));
+            }
+            
             if (result.containsKey("error")) {
+                log.warn("Validation failed: {}", result.get("error"));
                 if (result.containsKey("validationErrors")) {
                     return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(result);
                 } else {
@@ -1124,12 +1135,13 @@ public class BulkDisputeController {
                 }
             }
             
+            log.info("Validation successful, returning response");
             return ResponseEntity.ok(result);
             
         } catch (Exception e) {
-            log.error("Error validating session and proof files", e);
+            log.error("Unexpected error in controller while validating session and proof files", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Validation failed: " + e.getMessage()));
+                    .body(Map.of("error", "Internal server error: " + e.getMessage()));
         }
     }
 

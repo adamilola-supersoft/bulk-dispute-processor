@@ -2,11 +2,12 @@
 
 A Spring Boot microservice for processing bulk CSV uploads for dispute updates using a session-file approach. Files are stored on disk named by the database `session.id`. The service supports preview/edit functionality, proof file uploads, and creates jobs that are processed by background workers.
 
-> **Latest Update**: Manual database setup (Flyway removed), enhanced session management with institution/merchant filtering, nested job objects in responses, and comprehensive failure recovery with automatic retry/resume mechanisms.
+> **Latest Update**: Joint validation endpoint for combined CSV and proof file uploads, CONFIRMED as final session status with protection against changes, enhanced error handling, and simplified session lifecycle.
 
 ## Features
 
 - **CSV Upload & Validation**: Upload CSV files with automatic validation and structured error responses
+- **Joint Validation Endpoint**: Combined CSV and proof file validation in a single request
 - **Session Management**: Track upload sessions with optimistic locking and status tracking
 - **Preview/Edit**: Preview CSV data and overwrite with edited versions
 - **Proof File Management**: Upload, download, and manage proof files for dispute rejections
@@ -21,6 +22,7 @@ A Spring Boot microservice for processing bulk CSV uploads for dispute updates u
 - **Failure Recovery**: Comprehensive retry and resume mechanisms for robust job processing
 - **Multi-Worker Support**: Atomic job claiming and row tracking to prevent race conditions
 - **Automatic Retry/Resume**: Scheduled tasks for automatic failure recovery
+- **Session Status Protection**: Sessions locked at CONFIRMED status to preserve user intent
 - **Extensible Design**: Pluggable `DisputeUpdater` interface for custom processing logic
 
 ## Proof File Workflow
@@ -228,7 +230,62 @@ curl -X PUT http://localhost:8080/api/sessions/1/file \
 }
 ```
 
-### 4. Confirm Session and Create Job
+### 4. Joint Validation and Upload (NEW)
+
+**POST** `/api/sessions/session-and-proof`
+
+Upload CSV file and proof files together with combined validation.
+
+```bash
+curl -X POST http://localhost:8080/api/sessions/session-and-proof \
+  -F "csvFile=@disputes.csv" \
+  -F "receiptFiles=@proof1.pdf" \
+  -F "receiptFiles=@proof2.jpg" \
+  -F "uploadedBy=admin" \
+  -F "institutionCode=BANK001" \
+  -F "merchantId=MERCHANT123"
+```
+
+**Response:**
+```json
+{
+  "totals": {
+    "requested": 5,
+    "malformedRows": 0,
+    "succeeded": 5,
+    "failed": 0,
+    "elapsedMs": 353
+  },
+  "accepted": {
+    "slated": 2,
+    "succeeded": 2,
+    "failed": 0
+  },
+  "rejected": {
+    "slated": 3,
+    "succeeded": 3,
+    "failed": 0,
+    "missingReceipt": 0
+  },
+  "sessionId": 1
+}
+```
+
+**Error Response:**
+```json
+{
+  "error": "Validation failed",
+  "validationErrors": [
+    {
+      "row": 3,
+      "column": "Proof",
+      "reason": "Proof file is mandatory for REJECT actions. Please provide proof file for: ABC123"
+    }
+  ]
+}
+```
+
+### 5. Confirm Session and Create Job
 
 **POST** `/api/sessions/{sessionId}/confirm`
 
@@ -863,17 +920,18 @@ curl -X POST http://localhost:8080/api/jobs/123/retry
 # Response: {"success": true, "retryCount": 2}
 ```
 
-### Session Status Updates
+### Session Status Lifecycle
 
-Sessions are automatically updated based on job completion:
+Sessions follow a simple 4-step lifecycle with CONFIRMED as the final status:
 
-| **Job Status** | **Session Status** | **Description** |
-|----------------|-------------------|----------------|
-| `COMPLETED` (0 failures) | `PROCESSED` | All rows processed successfully |
-| `COMPLETED` (some failures) | `PARTIALLY_PROCESSED` | Some rows failed, others succeeded |
-| `FAILED` | `FAILED` | Job failed permanently |
-| `PAUSED` | `PROCESSING` | Job paused, session still in progress |
-| `RUNNING` | `PROCESSING` | Job currently running |
+| **Status** | **Description** | **Next Actions** |
+|------------|-----------------|------------------|
+| `UPLOADED` | CSV file uploaded and stored | Validate → `VALIDATED` |
+| `VALIDATED` | CSV validation completed successfully | Preview → `PREVIEWED` |
+| `PREVIEWED` | Session data previewed by user | Confirm → `CONFIRMED` |
+| `CONFIRMED` | **FINAL STATUS** - User intent confirmed | No further changes allowed |
+
+**Important**: Once a session reaches `CONFIRMED` status, it cannot be changed. This preserves user intent and prevents accidental modifications.
 
 ### Monitoring & Troubleshooting
 
@@ -972,7 +1030,7 @@ The application uses manual database setup with the provided SQL script. The sch
 - `institution_code`: Institution identifier (required)
 - `merchant_id`: Merchant identifier (required)
 - `file_size`: Size of uploaded file in bytes
-- `status`: Session status (UPLOADED, VALIDATED, CONFIRMED, PROCESSING, PROCESSED, PARTIALLY_PROCESSED, FAILED)
+- `status`: Session status (UPLOADED, VALIDATED, PREVIEWED, CONFIRMED)
 - `version`: Optimistic locking version number
 
 ### Key Fields in `tbl_disputes`:
@@ -1093,6 +1151,25 @@ curl http://localhost:8080/actuator/health/rabbit
 
 ## Recent Updates
 
+### **Joint Validation Endpoint (NEW)**
+- **Combined Upload**: Upload CSV and proof files together in a single request
+- **Unified Validation**: Validate CSV and proof files together with comprehensive error reporting
+- **Session Creation**: Automatically creates session and saves files to appropriate directories
+- **Error Handling**: Robust error handling prevents 422 responses with no body
+- **Replace Existing**: Uses existing `bulk.proofs.replace-existing` configuration
+
+### **Session Status Protection**
+- **CONFIRMED as Final**: Sessions end at CONFIRMED status and cannot be changed
+- **User Intent Preservation**: Prevents accidental modifications after user confirmation
+- **Simplified Lifecycle**: 4-step process: UPLOADED → VALIDATED → PREVIEWED → CONFIRMED
+- **Status Protection**: No status changes allowed after CONFIRMED
+
+### **Enhanced Error Handling**
+- **Robust Validation**: Comprehensive error handling for joint validation endpoint
+- **Detailed Logging**: Enhanced logging for debugging and monitoring
+- **Graceful Failures**: Individual file failures don't break entire operation
+- **Clear Error Messages**: Specific error messages with context
+
 ### **Proof File Management Improvements**
 - **Realistic Workflow**: Proof files are now uploaded separately via dedicated API endpoints
 - **Clean CSV Format**: CSV files no longer require proof column references
@@ -1135,24 +1212,31 @@ curl http://localhost:8080/actuator/health/rabbit
    - Review worker logs
    - Verify file paths are accessible
 
-5. **Proof File Validation Fails**
+5. **Joint Validation Endpoint Issues**
+   - Check file size limits: `spring.servlet.multipart.max-file-size` and `max-request-size`
+   - Verify proof files are named with dispute unique codes
+   - Check `bulk.proofs.replace-existing` configuration for file replacement behavior
+   - Review logs for detailed error messages during validation
+   - Ensure CSV and proof files are uploaded in single request
+
+6. **Proof File Validation Fails**
    - Ensure proof files are uploaded via `/api/proofs/upload` endpoint
    - Check file naming matches dispute unique codes
    - Verify proof files exist in configured directory
    - Check file permissions and accessibility
 
-6. **CSV Validation Issues**
+7. **CSV Validation Issues**
    - Ensure headers are properly formatted (trimmed, case-insensitive)
    - Check for BOM (Byte Order Mark) in CSV files
    - Verify required columns: `Unique Key`, `Action`
    - For REJECT actions, ensure proof files are uploaded separately
 
-7. **Connection Pool Issues**
+8. **Connection Pool Issues**
    - Check database connection limits: `mysql> SHOW VARIABLES LIKE 'max_connections';`
    - Monitor connection pool metrics via JMX: `jconsole localhost:8080`
    - Adjust pool size based on load: `export DB_MAX_CONNECTIONS=50`
 
-8. **Retry/Resume Issues**
+9. **Retry/Resume Issues**
    - Check automatic retry logs: `tail -f logs/application.log | grep AUTO_RETRY`
    - Verify retry configuration: `curl http://localhost:8080/actuator/configprops | grep bulk.retry`
    - Monitor job status: `curl http://localhost:8080/api/jobs/123/status`

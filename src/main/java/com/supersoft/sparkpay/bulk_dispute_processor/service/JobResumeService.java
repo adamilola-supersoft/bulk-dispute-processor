@@ -58,8 +58,8 @@ public class JobResumeService {
                 return false;
             }
 
-            // Update session status to PROCESSING
-            updateSessionStatus(job.getSessionId(), BulkDisputeSession.SessionStatus.PROCESSING);
+            // Check session status (sessions end at CONFIRMED)
+            updateSessionStatus(job.getSessionId(), BulkDisputeSession.SessionStatus.CONFIRMED);
 
             // Add audit entry
             addAuditEntry(jobId, "JOB_RESUMED", 
@@ -102,8 +102,8 @@ public class JobResumeService {
                 return false;
             }
 
-            // Update session status to PROCESSING (still processing, just paused)
-            updateSessionStatus(job.getSessionId(), BulkDisputeSession.SessionStatus.PROCESSING);
+            // Check session status (sessions end at CONFIRMED)
+            updateSessionStatus(job.getSessionId(), BulkDisputeSession.SessionStatus.CONFIRMED);
 
             // Add audit entry
             addAuditEntry(jobId, "JOB_PAUSED", String.format("Job paused: %s", reason));
@@ -154,19 +154,26 @@ public class JobResumeService {
     }
 
     /**
-     * Update session status
+     * Check session status
+     * Note: Sessions end at CONFIRMED status and do not transition further
      */
     private void updateSessionStatus(Long sessionId, BulkDisputeSession.SessionStatus newStatus) {
         try {
             Optional<BulkDisputeSession> sessionOpt = sessionRepository.findById(sessionId);
             if (sessionOpt.isPresent()) {
                 BulkDisputeSession session = sessionOpt.get();
-                session.setStatus(newStatus);
-                sessionRepository.save(session);
-                log.debug("Updated session {} status to {}", sessionId, newStatus);
+                
+                // Sessions end at CONFIRMED - no further status changes
+                if (session.getStatus().isFinalState()) {
+                    log.info("Session at final status CONFIRMED: sessionId={}", sessionId);
+                    return;
+                }
+                
+                log.info("Session status remains unchanged after job operations: sessionId={}, status={}", 
+                        sessionId, session.getStatus());
             }
         } catch (Exception e) {
-            log.error("Error updating session status for session {}: {}", sessionId, e.getMessage(), e);
+            log.error("Error checking session status for session {}: {}", sessionId, e.getMessage(), e);
         }
     }
 

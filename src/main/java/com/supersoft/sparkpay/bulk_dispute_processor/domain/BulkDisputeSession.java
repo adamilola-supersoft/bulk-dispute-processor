@@ -26,8 +26,17 @@ public class BulkDisputeSession {
     private int version;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
 
     public enum SessionStatus {
-        UPLOADED, VALIDATED, PREVIEWED, CONFIRMED, PROCESSING, PROCESSED, PARTIALLY_PROCESSED, FAILED
+        UPLOADED, VALIDATED, PREVIEWED, CONFIRMED;
+        
+        /**
+         * Check if the session is in the final state (user intent confirmed)
+         * @return true if session is in final state
+         */
+        public boolean isFinalState() {
+            return this == CONFIRMED;
+        }
     }
 }

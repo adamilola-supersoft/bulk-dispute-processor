@@ -37,6 +37,9 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
     
     @Value("${bulk.proofs.allowed-extensions:pdf,jpg,jpeg,png,doc,docx}")
     private String allowedExtensions;
+    
+    @Value("${bulk.proofs.replace-existing:true}")
+    private boolean replaceExisting;
 
     @Override
     public CombinedValidationResult validateCsvWithProofs(MultipartFile csvFile, List<MultipartFile> proofFiles) {
@@ -146,23 +149,28 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
     }
     
     private void validateProofFile(MultipartFile proofFile, String uniqueCode, int rowNumber, CombinedValidationResult result) {
-        // Validate file size
-        if (proofFile.getSize() > (long) maxSizeMb * 1024 * 1024) {
-            result.addError(rowNumber, "Proof", "Proof file too large for " + uniqueCode + ". Maximum size: " + maxSizeMb + "MB");
-            return;
-        }
+        try {
+            // Validate file size
+            if (proofFile.getSize() > (long) maxSizeMb * 1024 * 1024) {
+                result.addError(rowNumber, "Proof", "Proof file too large for " + uniqueCode + ". Maximum size: " + maxSizeMb + "MB");
+                return;
+            }
 
-        // Validate file extension
-        String originalFilename = proofFile.getOriginalFilename();
-        if (originalFilename == null || originalFilename.trim().isEmpty()) {
-            result.addError(rowNumber, "Proof", "Proof file must have a valid filename for " + uniqueCode);
-            return;
-        }
+            // Validate file extension
+            String originalFilename = proofFile.getOriginalFilename();
+            if (originalFilename == null || originalFilename.trim().isEmpty()) {
+                result.addError(rowNumber, "Proof", "Proof file must have a valid filename for " + uniqueCode);
+                return;
+            }
 
-        String fileExtension = getFileExtension(originalFilename);
-        List<String> allowedExts = Arrays.asList(allowedExtensions.split(","));
-        if (!allowedExts.contains(fileExtension.toLowerCase())) {
-            result.addError(rowNumber, "Proof", "Invalid file type for " + uniqueCode + ". Allowed extensions: " + allowedExtensions);
+            String fileExtension = getFileExtension(originalFilename);
+            List<String> allowedExts = Arrays.asList(allowedExtensions.split(","));
+            if (!allowedExts.contains(fileExtension.toLowerCase())) {
+                result.addError(rowNumber, "Proof", "Invalid file type for " + uniqueCode + ". Allowed extensions: " + allowedExtensions);
+            }
+        } catch (Exception e) {
+            log.error("Error validating proof file for unique code {}: {}", uniqueCode, e.getMessage(), e);
+            result.addError(rowNumber, "Proof", "Error validating proof file for " + uniqueCode + ": " + e.getMessage());
         }
     }
     
@@ -249,14 +257,19 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
         CombinedValidationResult result = new CombinedValidationResult();
         
         try {
+            log.info("Starting CSV validation for file: {}", csvFile.getOriginalFilename());
+            
             // First, perform validation
             result = validateCsvWithProofs(csvFile, proofFiles);
             
             // If validation fails, return early without saving files
             if (!result.isValid()) {
+                log.warn("CSV validation failed with {} errors", result.getErrors().size());
                 result.setElapsedMs(System.currentTimeMillis() - startTime);
                 return result;
             }
+            
+            log.info("CSV validation successful, creating session");
             
             // Create session with temporary file path first
             BulkDisputeSession session = BulkDisputeSession.builder()
@@ -274,17 +287,35 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
                     .createdAt(java.time.LocalDateTime.now())
                     .build();
             
-            session = sessionRepository.save(session);
-            result.setSessionId(session.getId());
+            try {
+                session = sessionRepository.save(session);
+                log.info("Session created with ID: {}", session.getId());
+                result.setSessionId(session.getId());
+            } catch (Exception e) {
+                log.error("Failed to create session in database", e);
+                result.addError(0, "DATABASE", "Failed to create session: " + e.getMessage());
+                result.setElapsedMs(System.currentTimeMillis() - startTime);
+                return result;
+            }
             
             // Save CSV file and update session with actual file path
-            String csvFilePath = fileService.saveSessionFile(session.getId(), csvFile);
-            session.setFilePath(csvFilePath);
-            sessionRepository.save(session);
-            result.setCsvFilePath(csvFilePath);
+            try {
+                String csvFilePath = fileService.saveSessionFile(session.getId(), csvFile);
+                session.setFilePath(csvFilePath);
+                sessionRepository.save(session);
+                result.setCsvFilePath(csvFilePath);
+                log.info("CSV file saved to: {}", csvFilePath);
+            } catch (Exception e) {
+                log.error("Failed to save CSV file", e);
+                result.addError(0, "FILE", "Failed to save CSV file: " + e.getMessage());
+                result.setElapsedMs(System.currentTimeMillis() - startTime);
+                return result;
+            }
             
             // Save proof files to proofs folder (without validation since we already validated)
             List<String> savedProofPaths = new java.util.ArrayList<>();
+            List<String> failedProofs = new java.util.ArrayList<>();
+            
             for (MultipartFile proofFile : proofFiles) {
                 if (proofFile != null && !proofFile.isEmpty()) {
                     String originalFilename = proofFile.getOriginalFilename();
@@ -292,21 +323,32 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
                         String uniqueCode = extractUniqueCodeFromFilename(originalFilename);
                         if (uniqueCode != null && !uniqueCode.trim().isEmpty()) {
                             try {
-                                String proofFilePath = proofService.uploadProofWithoutValidation(uniqueCode.trim(), proofFile);
+                                String proofFilePath = proofService.uploadProofWithoutValidation(uniqueCode.trim(), proofFile, replaceExisting);
                                 savedProofPaths.add(proofFilePath);
+                                log.info("Proof file saved for unique code: {}", uniqueCode);
                             } catch (Exception e) {
                                 log.warn("Failed to save proof file for unique code {}: {}", uniqueCode, e.getMessage());
+                                failedProofs.add(uniqueCode + ": " + e.getMessage());
                                 // Continue with other files even if one fails
                             }
                         }
                     }
                 }
             }
+            
             result.setProofFilePaths(savedProofPaths);
             
+            // If some proof files failed, add a warning but don't fail the entire operation
+            if (!failedProofs.isEmpty()) {
+                log.warn("Some proof files failed to save: {}", failedProofs);
+                result.addError(0, "PROOF_FILES", "Some proof files failed to save: " + String.join(", ", failedProofs));
+            }
+            
+            log.info("Validation and file saving completed successfully. Saved {} proof files", savedProofPaths.size());
+            
         } catch (Exception e) {
-            log.error("Error during validation and file saving", e);
-            result.addError(0, "FILE", "Error saving files: " + e.getMessage());
+            log.error("Unexpected error during validation and file saving", e);
+            result.addError(0, "SYSTEM", "Unexpected error: " + e.getMessage());
         }
         
         result.setElapsedMs(System.currentTimeMillis() - startTime);
@@ -326,30 +368,42 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
     public Map<String, Object> validateSessionAndProofs(MultipartFile csvFile, List<MultipartFile> proofFiles, 
                                                        String uploadedBy, String institutionCode, String merchantId) {
         try {
+            log.info("Starting validation for CSV: {} and {} proof files (replaceExisting: {})", 
+                    csvFile != null ? csvFile.getOriginalFilename() : "null", 
+                    proofFiles != null ? proofFiles.size() : 0,
+                    replaceExisting);
+            
             // Validate CSV file is provided
             if (csvFile == null || csvFile.isEmpty()) {
+                log.warn("CSV file is null or empty");
                 return Map.of("error", "CSV file is required");
             }
             
             // Handle null receipt files
             if (proofFiles == null) {
+                log.info("Proof files list is null, initializing empty list");
                 proofFiles = new java.util.ArrayList<>();
             }
             
             // Filter out null/empty files
-            proofFiles = proofFiles.stream()
+            List<MultipartFile> validProofFiles = proofFiles.stream()
                     .filter(file -> file != null && !file.isEmpty())
                     .collect(java.util.stream.Collectors.toList());
             
+            log.info("Filtered to {} valid proof files out of {} total", validProofFiles.size(), proofFiles.size());
+            
             // Perform combined validation and save files
-            CombinedValidationResult result = validateAndSaveCsvWithProofs(csvFile, proofFiles, uploadedBy, institutionCode, merchantId);
+            CombinedValidationResult result = validateAndSaveCsvWithProofs(csvFile, validProofFiles, uploadedBy, institutionCode, merchantId);
             
             if (!result.isValid()) {
+                log.warn("Validation failed with {} errors", result.getErrors().size());
                 return Map.of(
                         "error", "Validation failed",
                         "validationErrors", result.getErrors()
                 );
             }
+            
+            log.info("Validation successful, session ID: {}", result.getSessionId());
             
             // Return success response with the specified structure and session ID
             Map<String, Object> response = new java.util.HashMap<>(result.toResponseMap());
@@ -358,8 +412,11 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
             }
             return response;
             
+        } catch (IllegalArgumentException e) {
+            log.error("Validation error: {}", e.getMessage(), e);
+            return Map.of("error", "Validation error: " + e.getMessage());
         } catch (Exception e) {
-            log.error("Error validating session and proof files", e);
+            log.error("Unexpected error validating session and proof files", e);
             return Map.of("error", "Validation failed: " + e.getMessage());
         }
     }

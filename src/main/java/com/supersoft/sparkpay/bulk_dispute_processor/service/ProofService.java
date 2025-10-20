@@ -25,6 +25,16 @@ public interface ProofService {
     String uploadProofWithoutValidation(String uniqueCode, MultipartFile file) throws IOException;
     
     /**
+     * Upload proof file without validation with replace existing control
+     * @param uniqueCode Unique code for the dispute
+     * @param file Proof file to upload
+     * @param replaceExisting Whether to replace existing files
+     * @return File path where the proof was saved
+     * @throws IOException if file operations fail
+     */
+    String uploadProofWithoutValidation(String uniqueCode, MultipartFile file, boolean replaceExisting) throws IOException;
+    
+    /**
      * Get the proof file path for a dispute
      * @param uniqueCode The dispute's unique code
      * @return The file path if exists, null otherwise

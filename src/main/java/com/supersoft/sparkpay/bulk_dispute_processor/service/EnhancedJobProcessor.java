@@ -21,7 +21,8 @@ public class EnhancedJobProcessor {
     private BulkDisputeSessionRepository sessionRepository;
 
     /**
-     * Update session status based on job completion
+     * Check session status after job completion
+     * Note: Sessions end at CONFIRMED status and do not transition further
      */
     public void updateSessionStatus(Long sessionId, BulkDisputeJob job) {
         try {
@@ -32,45 +33,21 @@ public class EnhancedJobProcessor {
             }
 
             BulkDisputeSession session = sessionOpt.get();
-            BulkDisputeSession.SessionStatus newStatus = determineSessionStatus(job);
             
-            if (session.getStatus() != newStatus) {
-                session.setStatus(newStatus);
-                sessionRepository.save(session);
-                log.info("Updated session status: sessionId={}, oldStatus={}, newStatus={}", 
-                        sessionId, session.getStatus(), newStatus);
+            // Sessions end at CONFIRMED - no further status changes
+            if (session.getStatus().isFinalState()) {
+                log.info("Session at final status CONFIRMED: sessionId={}", sessionId);
+                return;
             }
+            
+            log.info("Session status remains unchanged after job completion: sessionId={}, status={}", 
+                    sessionId, session.getStatus());
 
         } catch (Exception e) {
-            log.error("Error updating session status for sessionId={}", sessionId, e);
+            log.error("Error checking session status for sessionId={}", sessionId, e);
         }
     }
 
-    /**
-     * Determine session status based on job result
-     */
-    private BulkDisputeSession.SessionStatus determineSessionStatus(BulkDisputeJob job) {
-        switch (job.getStatus()) {
-            case RUNNING:
-                return BulkDisputeSession.SessionStatus.PROCESSING;
-                
-            case COMPLETED:
-                if (job.getFailureCount() == 0) {
-                    return BulkDisputeSession.SessionStatus.PROCESSED;
-                } else {
-                    return BulkDisputeSession.SessionStatus.PARTIALLY_PROCESSED;
-                }
-                
-            case FAILED:
-                return BulkDisputeSession.SessionStatus.FAILED;
-                
-            case PAUSED:
-                return BulkDisputeSession.SessionStatus.PROCESSING; // Still processing, just paused
-                
-            default:
-                return BulkDisputeSession.SessionStatus.CONFIRMED;
-        }
-    }
 
     /**
      * Resume a paused job from the last processed row
