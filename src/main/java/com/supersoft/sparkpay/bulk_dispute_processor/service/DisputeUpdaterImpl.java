@@ -70,9 +70,9 @@ public class DisputeUpdaterImpl implements DisputeUpdater {
     
     private int mapActionToStatus(String action) {
         if ("ACCEPT".equalsIgnoreCase(action)) {
-            return 0;
+            return 0;  // ACCEPTED: status 0, resolved 0
         } else if ("REJECT".equalsIgnoreCase(action)) {
-            return 1;
+            return 1;  // REJECTED: status 1, resolved 1
         } else {
             throw new IllegalArgumentException("Invalid action: " + action + ". Must be ACCEPT or REJECT");
         }

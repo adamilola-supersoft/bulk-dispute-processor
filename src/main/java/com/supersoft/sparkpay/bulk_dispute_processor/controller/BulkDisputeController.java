@@ -156,15 +156,13 @@ public class BulkDisputeController {
                           "Unique Key": "2214B8JO003524000000003524",
                           "Action": "ACCEPT",
                           "Proof(Optional)": "",
-                          "Live Status": "PENDING",
-                          "Processed": "false"
+                          "Live Status": "Pending"
                         },
                         {
                           "Unique Key": "2070EXNV012946000000012946",
                           "Action": "REJECT",
                           "Proof(Optional)": "Document1.pdf",
-                          "Live Status": "ACCEPTED",
-                          "Processed": "true",
+                          "Live Status": "Accepted",
                           "Resolved By": "system",
                           "Date Modified": "2025-10-20 15:30:45"
                         }

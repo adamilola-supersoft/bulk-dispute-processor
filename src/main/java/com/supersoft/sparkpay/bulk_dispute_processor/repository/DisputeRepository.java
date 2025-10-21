@@ -121,44 +121,35 @@ public class DisputeRepository {
         
         /**
          * Get human-readable status based on business logic:
-         * - Logged: status -1, resolved 0
-         * - Accepted: status 0, resolved 0  
-         * - Rejected: status 1, resolved 1
-         * - Arbitrated: status -2, resolved 1
-         * - Resolved: status remains 0, resolved becomes 1
+         * PENDING: status -1, resolved 0 OR status -2, resolved 1
+         * ACCEPTED: status 0, resolved 0 OR status -3, resolved 1
+         * REJECTED: status -4, resolved 1 OR status 1, resolved 1
          */
         public String getStatusDescription() {
             if (status == null) {
-                return "UNKNOWN";
+                return "Unknown";
             }
             
-            // Check if dispute is resolved first
-            if (resolved != null && resolved == 1) {
-                // Dispute is resolved
-                return switch (status) {
-                    case 0 -> "RESOLVED_ACCEPTED";  // Was accepted, now resolved
-                    case 1 -> "REJECTED";           // Was rejected
-                    case -2 -> "ARBITRATED";        // Was arbitrated
-                    default -> "RESOLVED";
-                };
-            } else {
-                // Dispute is not resolved yet
-                return switch (status) {
-                    case -1 -> "LOGGED";           // Just logged
-                    case 0 -> "ACCEPTED";          // Accepted but not resolved
-                    case 1 -> "REJECTED";          // Rejected
-                    case -2 -> "ARBITRATED";       // Arbitrated
-                    default -> "UNKNOWN";
-                };
+            // PENDING: status -1, resolved 0 OR status -2, resolved 1
+            if ((status == -1 && (resolved == null || resolved == 0)) || 
+                (status == -2 && resolved != null && resolved == 1)) {
+                return "Pending";
             }
+            
+            // ACCEPTED: status 0, resolved 0 OR status -3, resolved 1
+            if ((status == 0 && (resolved == null || resolved == 0)) || 
+                (status == -3 && resolved != null && resolved == 1)) {
+                return "Accepted";
+            }
+            
+            // REJECTED: status -4, resolved 1 OR status 1, resolved 1
+            if ((status == -4 && resolved != null && resolved == 1) || 
+                (status == 1 && resolved != null && resolved == 1)) {
+                return "Rejected";
+            }
+            
+            return "Unknown";
         }
         
-        /**
-         * Check if dispute is processed (resolved)
-         * A dispute is considered processed when resolved = 1
-         */
-        public boolean isProcessed() {
-            return resolved != null && resolved == 1;
-        }
     }
 }

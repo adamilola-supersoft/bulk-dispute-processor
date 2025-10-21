@@ -51,25 +51,16 @@ public class LiveStatusService {
         return statuses.get(uniqueKey);
     }
 
-    /**
-     * Check if a dispute is processed (has been resolved)
-     * @param uniqueKey The unique key to check
-     * @return true if processed, false otherwise
-     */
-    public boolean isDisputeProcessed(String uniqueKey) {
-        DisputeRepository.DisputeStatusInfo status = getLiveStatus(uniqueKey);
-        return status != null && status.isProcessed();
-    }
 
     /**
      * Get human-readable status description for a dispute
      * @param uniqueKey The unique key to check
-     * @return Status description (PENDING, ACCEPTED, REJECTED, UNKNOWN)
+     * @return Status description (pending, accepted, rejected, unknown, notFound)
      */
     public String getStatusDescription(String uniqueKey) {
         DisputeRepository.DisputeStatusInfo status = getLiveStatus(uniqueKey);
         if (status == null) {
-            return "NOT_FOUND";
+            return "NotFound";
         }
         return status.getStatusDescription();
     }

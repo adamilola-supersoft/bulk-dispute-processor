@@ -270,7 +270,6 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
                         DisputeRepository.DisputeStatusInfo statusInfo = liveStatuses.get(uniqueKey.trim());
                         if (statusInfo != null) {
                             row.put("Live Status", statusInfo.getStatusDescription());
-                            row.put("Processed", String.valueOf(statusInfo.isProcessed()));
                             if (statusInfo.getResolvedBy() != null) {
                                 row.put("Resolved By", statusInfo.getResolvedBy());
                             }
@@ -279,8 +278,7 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
                             }
                             log.debug("Added live status for {}: {}", uniqueKey, statusInfo.getStatusDescription());
                         } else {
-                            row.put("Live Status", "NOT_FOUND");
-                            row.put("Processed", "false");
+                            row.put("Live Status", "NotFound");
                             log.debug("No live status found for {}", uniqueKey);
                         }
                     }
