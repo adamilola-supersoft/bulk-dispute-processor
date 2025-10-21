@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Map;
+
 @Slf4j
 @Repository
 public class DisputeRepository {
@@ -29,6 +32,133 @@ public class DisputeRepository {
         } catch (Exception e) {
             log.error("Error executing update query", e);
             throw e;
+        }
+    }
+
+    /**
+     * Get live dispute statuses for multiple unique keys
+     * @param uniqueKeys List of unique keys to check
+     * @return Map of unique key to dispute status information
+     */
+    public Map<String, DisputeStatusInfo> getDisputeStatuses(List<String> uniqueKeys) {
+        if (uniqueKeys == null || uniqueKeys.isEmpty()) {
+            return Map.of();
+        }
+
+        String placeholders = String.join(",", uniqueKeys.stream().map(key -> "?").toList());
+        String sql = "SELECT unique_log_code, status, resolved, resolved_by, date_modified, proof_of_reject_uri " +
+                "FROM tbl_disputes " +
+                "WHERE unique_log_code IN (" + placeholders + ")";
+
+        log.info("DisputeRepository: Getting dispute statuses for {} unique keys: {}", uniqueKeys.size(), uniqueKeys);
+        log.info("DisputeRepository: Executing SQL: {}", sql);
+        
+        try {
+            List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, uniqueKeys.toArray());
+            log.info("DisputeRepository: SQL query returned {} rows", results.size());
+            
+            Map<String, DisputeStatusInfo> statusMap = new java.util.HashMap<>();
+            for (Map<String, Object> row : results) {
+                String uniqueKey = (String) row.get("unique_log_code");
+                Integer status = (Integer) row.get("status");
+                Integer resolved = (Integer) row.get("resolved");
+                String resolvedBy = (String) row.get("resolved_by");
+                
+                // Handle both LocalDateTime and Timestamp
+                java.sql.Timestamp dateModified = null;
+                Object dateModifiedObj = row.get("date_modified");
+                if (dateModifiedObj instanceof java.sql.Timestamp) {
+                    dateModified = (java.sql.Timestamp) dateModifiedObj;
+                } else if (dateModifiedObj instanceof java.time.LocalDateTime) {
+                    dateModified = java.sql.Timestamp.valueOf((java.time.LocalDateTime) dateModifiedObj);
+                }
+                
+                String proofUri = (String) row.get("proof_of_reject_uri");
+                
+                log.info("DisputeRepository: Found dispute {} - status: {}, resolved: {}, resolvedBy: {}", 
+                        uniqueKey, status, resolved, resolvedBy);
+                
+                statusMap.put(uniqueKey, new DisputeStatusInfo(
+                    uniqueKey, status, resolved, resolvedBy, dateModified, proofUri
+                ));
+            }
+            
+            log.info("DisputeRepository: Found {} dispute statuses out of {} requested", statusMap.size(), uniqueKeys.size());
+            return statusMap;
+        } catch (Exception e) {
+            log.error("Error getting dispute statuses", e);
+            return Map.of();
+        }
+    }
+
+    /**
+     * Dispute status information
+     */
+    public static class DisputeStatusInfo {
+        private final String uniqueKey;
+        private final Integer status;
+        private final Integer resolved;
+        private final String resolvedBy;
+        private final java.sql.Timestamp dateModified;
+        private final String proofUri;
+
+        public DisputeStatusInfo(String uniqueKey, Integer status, Integer resolved, String resolvedBy, 
+                               java.sql.Timestamp dateModified, String proofUri) {
+            this.uniqueKey = uniqueKey;
+            this.status = status;
+            this.resolved = resolved;
+            this.resolvedBy = resolvedBy;
+            this.dateModified = dateModified;
+            this.proofUri = proofUri;
+        }
+
+        public String getUniqueKey() { return uniqueKey; }
+        public Integer getStatus() { return status; }
+        public Integer getResolved() { return resolved; }
+        public String getResolvedBy() { return resolvedBy; }
+        public java.sql.Timestamp getDateModified() { return dateModified; }
+        public String getProofUri() { return proofUri; }
+        
+        /**
+         * Get human-readable status based on business logic:
+         * - Logged: status -1, resolved 0
+         * - Accepted: status 0, resolved 0  
+         * - Rejected: status 1, resolved 1
+         * - Arbitrated: status -2, resolved 1
+         * - Resolved: status remains 0, resolved becomes 1
+         */
+        public String getStatusDescription() {
+            if (status == null) {
+                return "UNKNOWN";
+            }
+            
+            // Check if dispute is resolved first
+            if (resolved != null && resolved == 1) {
+                // Dispute is resolved
+                return switch (status) {
+                    case 0 -> "RESOLVED_ACCEPTED";  // Was accepted, now resolved
+                    case 1 -> "REJECTED";           // Was rejected
+                    case -2 -> "ARBITRATED";        // Was arbitrated
+                    default -> "RESOLVED";
+                };
+            } else {
+                // Dispute is not resolved yet
+                return switch (status) {
+                    case -1 -> "LOGGED";           // Just logged
+                    case 0 -> "ACCEPTED";          // Accepted but not resolved
+                    case 1 -> "REJECTED";          // Rejected
+                    case -2 -> "ARBITRATED";       // Arbitrated
+                    default -> "UNKNOWN";
+                };
+            }
+        }
+        
+        /**
+         * Check if dispute is processed (resolved)
+         * A dispute is considered processed when resolved = 1
+         */
+        public boolean isProcessed() {
+            return resolved != null && resolved == 1;
         }
     }
 }

@@ -1,0 +1,933 @@
+2025-10-21T10:03:38.133+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Starting Application using Java 20.0.2 with PID 33276 (C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\target\classes started by USER in C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor)
+2025-10-21T10:03:38.138+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : No active profile set, falling back to 1 default profile: "default"
+2025-10-21T10:03:42.744+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8445 (http)
+2025-10-21T10:03:42.784+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-21T10:03:42.785+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-10-21T10:03:42.994+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-21T10:03:42.996+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4693 ms
+2025-10-21T10:03:44.595+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] o.s.v.b.OptionalValidatorFactoryBean     : Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2025-10-21T10:03:45.463+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-21T10:03:46.090+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@7540160e
+2025-10-21T10:03:46.462+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-21T10:03:46.877+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8445 (http) with context path '/'
+2025-10-21T10:03:46.885+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-10-21T10:03:47.073+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#16e99306:0/SimpleConnection@7b29cdea [delegate=amqp://admin@127.0.0.1:5672/, localPort=62108]
+2025-10-21T10:03:47.627+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Started Application in 11.271 seconds (process running for 12.324)
+2025-10-21T10:03:47.663+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:03:47.666+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.a.b.JobLauncherApplicationRunner   : Running default command line with: []
+2025-10-21T10:03:47.666+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:03:47.789+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:03:47.794+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:03:47.795+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:03:47.809+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:04:17.799+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:04:17.801+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:04:17.811+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:04:29.221+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-21T10:04:29.221+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-10-21T10:04:29.229+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+2025-10-21T10:04:29.385+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:04:29.387+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:04:29.405+01:00 ERROR 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Error getting preview for session 2
+
+java.nio.file.NoSuchFileException: C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\uploads\2.csv
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108) ~[na:na]
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:234) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:379) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:431) ~[na:na]
+	at java.base/java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:422) ~[na:na]
+	at java.base/java.nio.file.Files.newInputStream(Files.java:159) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2892) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2925) ~[na:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionServiceImpl.getPreviewData(BulkDisputeSessionServiceImpl.java:228) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionServiceImpl.getSessionPreview(BulkDisputeSessionServiceImpl.java:102) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.controller.BulkDisputeController.getPreview(BulkDisputeController.java:198) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:578) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.46.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.46.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at com.supersoft.sparkpay.bulk_dispute_processor.config.CorsFilter.doFilter(CorsFilter.java:58) ~[classes/:na]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:116) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:398) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1776) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:975) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:493) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at java.base/java.lang.Thread.run(Thread.java:1623) ~[na:na]
+
+2025-10-21T10:04:47.817+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:04:47.817+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:04:47.827+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:04:47.828+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:04:47.829+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:04:47.833+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:05:17.838+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:05:17.838+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:05:17.846+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:05:47.832+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:05:47.833+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:05:47.840+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:05:47.848+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:05:47.849+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:05:47.851+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:05:50.307+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-2] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Uploading session file: dispute upload template.csv
+2025-10-21T10:05:50.315+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-2] o.s.jdbc.core.JdbcTemplate               : Executing SQL update and returning generated keys
+2025-10-21T10:05:50.317+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-2] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement
+2025-10-21T10:05:50.452+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-2] c.s.s.b.service.FileServiceImpl          : Saved session file: C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\uploads\8.csv
+2025-10-21T10:05:50.457+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-2] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2025-10-21T10:05:50.460+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-2] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [UPDATE bulk_dispute_session SET institution_code=?, merchant_id=?, uploaded_by=?, file_path=?, file_name=?, file_size=?, status=?, total_rows=?, valid_rows=?, invalid_rows=?, version=? WHERE id=? AND version=?]
+2025-10-21T10:05:50.479+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-2] c.s.s.b.s.CsvValidationServiceImpl       : Parsed headers: [Unique Key, Action, Proof(Optional)]
+2025-10-21T10:05:50.482+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-2] c.s.s.b.s.CsvValidationServiceImpl       : Required columns: [Unique Key, Action]
+2025-10-21T10:05:50.494+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-2] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2025-10-21T10:05:50.495+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-2] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [UPDATE bulk_dispute_session SET institution_code=?, merchant_id=?, uploaded_by=?, file_path=?, file_name=?, file_size=?, status=?, total_rows=?, valid_rows=?, invalid_rows=?, version=? WHERE id=? AND version=?]
+2025-10-21T10:06:17.857+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:06:17.891+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:06:17.913+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:06:47.843+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:06:47.846+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:06:47.855+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:06:47.922+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:06:47.925+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:06:47.926+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:06:51.174+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.c.BulkDisputeController          : Received request for session and proof validation. CSV: dispute upload template.csv, Proof files: 2
+2025-10-21T10:06:51.176+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.s.CombinedValidationServiceImpl  : Starting validation for CSV: dispute upload template.csv and 2 proof files (replaceExisting: true)
+2025-10-21T10:06:51.177+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.s.CombinedValidationServiceImpl  : Filtered to 2 valid proof files out of 2 total
+2025-10-21T10:06:51.180+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.s.CombinedValidationServiceImpl  : Starting CSV validation for file: dispute upload template.csv
+2025-10-21T10:06:51.184+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.s.CombinedValidationServiceImpl  : CSV validation successful, creating session
+2025-10-21T10:06:51.186+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] o.s.jdbc.core.JdbcTemplate               : Executing SQL update and returning generated keys
+2025-10-21T10:06:51.187+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement
+2025-10-21T10:06:51.207+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.s.CombinedValidationServiceImpl  : Session created with ID: 9
+2025-10-21T10:06:51.219+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.service.FileServiceImpl          : Saved session file: C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\uploads\9.csv
+2025-10-21T10:06:51.221+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL update
+2025-10-21T10:06:51.224+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [UPDATE bulk_dispute_session SET institution_code=?, merchant_id=?, uploaded_by=?, file_path=?, file_name=?, file_size=?, status=?, total_rows=?, valid_rows=?, invalid_rows=?, version=? WHERE id=? AND version=?]
+2025-10-21T10:06:51.233+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.s.CombinedValidationServiceImpl  : CSV file saved to: C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\uploads\9.csv
+2025-10-21T10:06:51.242+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.service.ProofServiceImpl         : Proof uploaded successfully: uniqueCode=2033Z0AF460932605557942955, filename=2033Z0AF460932605557942955_20251021_100651.PNG, size=33268 bytes
+2025-10-21T10:06:51.244+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.s.CombinedValidationServiceImpl  : Proof file saved for unique code: 2033Z0AF460932605557942955
+2025-10-21T10:06:51.250+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.service.ProofServiceImpl         : Proof uploaded successfully: uniqueCode=2057EFQY000282000000000282, filename=2057EFQY000282000000000282_20251021_100651.PNG, size=73690 bytes
+2025-10-21T10:06:51.250+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.s.CombinedValidationServiceImpl  : Proof file saved for unique code: 2057EFQY000282000000000282
+2025-10-21T10:06:51.250+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.s.CombinedValidationServiceImpl  : Validation and file saving completed successfully. Saved 2 proof files
+2025-10-21T10:06:51.250+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.s.CombinedValidationServiceImpl  : Validation successful, session ID: 9
+2025-10-21T10:06:51.250+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-4] c.s.s.b.c.BulkDisputeController          : Validation successful, returning response
+2025-10-21T10:07:13.046+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-6] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:07:13.047+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-6] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT s.id, s.institution_code, s.merchant_id, s.uploaded_by, s.file_name, s.status, s.total_rows, s.valid_rows, s.invalid_rows, s.created_at, s.updated_at, j.id as job_id, j.status as job_status, j.processed_rows, j.success_count, j.failure_count FROM bulk_dispute_session s LEFT JOIN bulk_dispute_job j ON s.id = j.session_id WHERE 1=1 ORDER BY s.created_at DESC LIMIT ? OFFSET ?]
+2025-10-21T10:07:13.076+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-6] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:07:13.077+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-6] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT COUNT(*) FROM bulk_dispute_session WHERE 1=1]
+2025-10-21T10:07:17.935+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:07:17.936+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:07:17.941+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:07:47.871+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:07:47.871+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:07:47.877+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:07:47.951+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:07:47.953+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:07:47.957+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:08:17.960+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:08:17.961+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:08:17.968+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:08:47.894+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:08:47.898+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:08:47.906+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:08:47.983+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:08:47.983+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:08:47.988+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:09:18.000+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:09:18.002+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:09:18.009+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:09:47.919+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:09:47.921+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:09:47.923+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:09:48.021+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:09:48.022+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:09:48.027+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:10:18.039+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:10:18.276+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:10:18.333+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:10:47.932+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:10:47.933+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:10:47.936+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:10:48.470+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:10:48.470+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:10:48.470+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:11:13.750+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-8] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:11:13.751+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-8] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:11:13.753+01:00 ERROR 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-8] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Error getting preview for session 2
+
+java.nio.file.NoSuchFileException: C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\uploads\2.csv
+	at java.base/sun.nio.fs.WindowsException.translateToIOException(WindowsException.java:85) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:103) ~[na:na]
+	at java.base/sun.nio.fs.WindowsException.rethrowAsIOException(WindowsException.java:108) ~[na:na]
+	at java.base/sun.nio.fs.WindowsFileSystemProvider.newByteChannel(WindowsFileSystemProvider.java:234) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:379) ~[na:na]
+	at java.base/java.nio.file.Files.newByteChannel(Files.java:431) ~[na:na]
+	at java.base/java.nio.file.spi.FileSystemProvider.newInputStream(FileSystemProvider.java:422) ~[na:na]
+	at java.base/java.nio.file.Files.newInputStream(Files.java:159) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2892) ~[na:na]
+	at java.base/java.nio.file.Files.newBufferedReader(Files.java:2925) ~[na:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionServiceImpl.getPreviewData(BulkDisputeSessionServiceImpl.java:228) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionServiceImpl.getSessionPreview(BulkDisputeSessionServiceImpl.java:102) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.controller.BulkDisputeController.getPreview(BulkDisputeController.java:198) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:578) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.46.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.46.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at com.supersoft.sparkpay.bulk_dispute_processor.config.CorsFilter.doFilter(CorsFilter.java:58) ~[classes/:na]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:116) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:398) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1776) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:975) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:493) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at java.base/java.lang.Thread.run(Thread.java:1623) ~[na:na]
+
+2025-10-21T10:11:18.489+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:11:18.489+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:11:18.492+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:11:47.951+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:11:47.952+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:11:47.956+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:11:48.500+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:11:48.504+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:11:48.505+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:12:18.524+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:12:18.525+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:12:18.528+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:12:24.804+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:12:24.804+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-9] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:12:47.797+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:12:47.798+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:12:47.967+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:12:47.967+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:12:47.971+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:12:48.536+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:12:48.536+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:12:48.539+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:13:18.551+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:13:18.551+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:13:18.553+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:13:28.888+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:13:28.889+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:13:47.982+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:13:47.982+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:13:47.985+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:13:48.556+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:13:48.556+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:13:48.558+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:14:18.562+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:14:18.563+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:14:18.566+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:14:40.005+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-5] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:14:40.005+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-5] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:14:47.988+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:14:47.989+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:14:48.002+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:14:48.568+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:14:48.569+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:14:48.570+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:15:18.582+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:15:18.584+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:15:18.589+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:15:48.016+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:15:48.016+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:15:48.020+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:15:48.598+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:15:48.598+01:00 DEBUG 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:15:48.601+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:16:00.025+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2025-10-21T10:16:00.727+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2025-10-21T10:16:00.729+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-10-21T10:16:01.553+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-10-21T10:16:01.575+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-10-21T10:16:01.591+01:00  INFO 33276 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-10-21T10:16:26.764+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Starting Application using Java 20.0.2 with PID 3756 (C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\target\classes started by USER in C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor)
+2025-10-21T10:16:26.768+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : No active profile set, falling back to 1 default profile: "default"
+2025-10-21T10:16:28.887+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8445 (http)
+2025-10-21T10:16:28.913+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-21T10:16:28.913+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-10-21T10:16:29.017+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-21T10:16:29.018+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2171 ms
+2025-10-21T10:16:29.845+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] o.s.v.b.OptionalValidatorFactoryBean     : Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2025-10-21T10:16:30.342+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-21T10:16:30.638+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5f3f3d00
+2025-10-21T10:16:30.743+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-21T10:16:30.983+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8445 (http) with context path '/'
+2025-10-21T10:16:30.987+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-10-21T10:16:31.076+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#2a140ce5:0/SimpleConnection@4ed19b69 [delegate=amqp://admin@127.0.0.1:5672/, localPort=58227]
+2025-10-21T10:16:31.205+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Started Application in 5.293 seconds (process running for 5.864)
+2025-10-21T10:16:31.211+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.a.b.JobLauncherApplicationRunner   : Running default command line with: []
+2025-10-21T10:16:31.216+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:16:31.218+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:16:31.244+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:16:31.247+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:16:31.248+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:16:31.251+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:17:01.261+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:17:01.261+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:17:01.265+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:17:18.298+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-21T10:17:18.298+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-10-21T10:17:18.301+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+2025-10-21T10:17:18.357+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:17:18.358+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:17:18.373+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.s.BulkDisputeSessionServiceImpl  : No unique keys found for live status lookup
+2025-10-21T10:17:31.258+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:17:31.260+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:17:31.265+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:17:31.266+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:17:31.267+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:17:31.269+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:18:01.283+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:18:01.283+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:18:01.286+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:18:31.278+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:18:31.279+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:18:31.281+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:18:31.293+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:18:31.294+01:00 DEBUG 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:18:31.295+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:18:36.406+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Starting Application using Java 20.0.2 with PID 41296 (C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\target\classes started by USER in C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor)
+2025-10-21T10:18:36.411+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : No active profile set, falling back to 1 default profile: "default"
+2025-10-21T10:18:38.720+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8445 (http)
+2025-10-21T10:18:38.738+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-21T10:18:38.741+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-10-21T10:18:38.830+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-21T10:18:38.832+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2319 ms
+2025-10-21T10:18:39.692+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] o.s.v.b.OptionalValidatorFactoryBean     : Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2025-10-21T10:18:40.212+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-21T10:18:40.490+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5f3f3d00
+2025-10-21T10:18:40.638+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-21T10:18:40.929+01:00  WARN 41296 --- [sparkpay.bulk_dispute_processor] [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2025-10-21T10:18:40.936+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-10-21T10:18:40.970+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-10-21T10:18:41.006+01:00  INFO 41296 --- [sparkpay.bulk_dispute_processor] [main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2025-10-21T10:18:41.046+01:00 ERROR 41296 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8445 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8445 or configure this application to listen on another port.
+
+2025-10-21T10:18:50.085+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2025-10-21T10:18:50.333+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2025-10-21T10:18:50.337+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-10-21T10:18:51.414+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-10-21T10:18:51.429+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-10-21T10:18:51.441+01:00  INFO 3756 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-10-21T10:19:08.916+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Starting Application using Java 20.0.2 with PID 20272 (C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\target\classes started by USER in C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor)
+2025-10-21T10:19:08.919+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : No active profile set, falling back to 1 default profile: "default"
+2025-10-21T10:19:10.980+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8445 (http)
+2025-10-21T10:19:11.001+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-21T10:19:11.002+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-10-21T10:19:11.103+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-21T10:19:11.105+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2113 ms
+2025-10-21T10:19:12.005+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] o.s.v.b.OptionalValidatorFactoryBean     : Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2025-10-21T10:19:12.477+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-21T10:19:12.697+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5f3f3d00
+2025-10-21T10:19:12.793+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-21T10:19:13.020+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8445 (http) with context path '/'
+2025-10-21T10:19:13.026+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-10-21T10:19:13.119+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#2a140ce5:0/SimpleConnection@4ed19b69 [delegate=amqp://admin@127.0.0.1:5672/, localPort=51713]
+2025-10-21T10:19:13.229+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Started Application in 5.032 seconds (process running for 5.545)
+2025-10-21T10:19:13.234+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.a.b.JobLauncherApplicationRunner   : Running default command line with: []
+2025-10-21T10:19:13.236+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:19:13.238+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:19:13.261+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:19:13.263+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:19:13.264+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:19:13.270+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:19:26.689+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-21T10:19:26.690+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-10-21T10:19:26.692+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2025-10-21T10:19:26.757+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:19:26.757+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:19:26.764+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.s.BulkDisputeSessionServiceImpl  : No unique keys found for live status lookup
+2025-10-21T10:19:43.273+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:19:43.294+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:19:43.320+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:20:13.276+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:20:13.276+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:20:13.280+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:20:13.352+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:20:13.353+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:20:13.355+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:20:43.367+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:20:43.368+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:20:43.371+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:21:13.296+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:21:13.297+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:21:13.310+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:21:13.379+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:21:13.379+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:21:13.379+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:21:43.393+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:21:43.393+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:21:43.404+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:22:13.328+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:22:13.328+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:22:13.332+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:22:13.413+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:22:13.414+01:00 DEBUG 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:22:13.414+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:22:19.588+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2025-10-21T10:22:20.550+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2025-10-21T10:22:20.554+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-10-21T10:22:22.432+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-10-21T10:22:22.502+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-10-21T10:22:22.532+01:00  INFO 20272 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-10-21T10:22:55.424+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Starting Application using Java 20.0.2 with PID 19972 (C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\target\classes started by USER in C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor)
+2025-10-21T10:22:55.431+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : No active profile set, falling back to 1 default profile: "default"
+2025-10-21T10:23:00.277+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8445 (http)
+2025-10-21T10:23:00.337+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-21T10:23:00.343+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-10-21T10:23:00.647+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-21T10:23:00.649+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 5059 ms
+2025-10-21T10:23:02.316+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] o.s.v.b.OptionalValidatorFactoryBean     : Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2025-10-21T10:23:03.416+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-21T10:23:03.840+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@31d4b3e8
+2025-10-21T10:23:04.047+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-21T10:23:04.435+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8445 (http) with context path '/'
+2025-10-21T10:23:04.441+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-10-21T10:23:04.565+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#2c604965:0/SimpleConnection@77cc6a28 [delegate=amqp://admin@127.0.0.1:5672/, localPort=61988]
+2025-10-21T10:23:04.814+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Started Application in 11.196 seconds (process running for 12.272)
+2025-10-21T10:23:04.844+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:23:04.851+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:23:04.858+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.a.b.JobLauncherApplicationRunner   : Running default command line with: []
+2025-10-21T10:23:04.929+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:23:04.935+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:23:04.938+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:23:04.945+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:23:27.418+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-21T10:23:27.420+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-10-21T10:23:27.422+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2025-10-21T10:23:27.524+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:23:27.526+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:23:27.539+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Getting live statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:23:27.540+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.service.LiveStatusService        : LiveStatusService: Getting live statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:23:27.541+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Getting dispute statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:23:27.543+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Executing SQL: SELECT unique_log_code, status, resolved, resolved_by, date_modified, proof_of_reject_uri FROM tbl_disputes WHERE unique_log_code IN (?,?,?)
+2025-10-21T10:23:27.545+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:23:27.546+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT unique_log_code, status, resolved, resolved_by, date_modified, proof_of_reject_uri FROM tbl_disputes WHERE unique_log_code IN (?,?,?)]
+2025-10-21T10:23:27.597+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: SQL query returned 3 rows
+2025-10-21T10:23:27.601+01:00 ERROR 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : Error getting dispute statuses
+
+java.lang.ClassCastException: class java.time.LocalDateTime cannot be cast to class java.sql.Timestamp (java.time.LocalDateTime is in module java.base of loader 'bootstrap'; java.sql.Timestamp is in module java.sql of loader 'platform')
+	at com.supersoft.sparkpay.bulk_dispute_processor.repository.DisputeRepository.getDisputeStatuses(DisputeRepository.java:66) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:578) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.11.jar:6.2.11]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.2.11.jar:6.2.11]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.2.11.jar:6.2.11]
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138) ~[spring-tx-6.2.11.jar:6.2.11]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.11.jar:6.2.11]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728) ~[spring-aop-6.2.11.jar:6.2.11]
+	at com.supersoft.sparkpay.bulk_dispute_processor.repository.DisputeRepository$$SpringCGLIB$$0.getDisputeStatuses(<generated>) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.service.LiveStatusService.getLiveStatuses(LiveStatusService.java:33) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionServiceImpl.getPreviewData(BulkDisputeSessionServiceImpl.java:263) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionServiceImpl.getSessionPreview(BulkDisputeSessionServiceImpl.java:102) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.controller.BulkDisputeController.getPreview(BulkDisputeController.java:198) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:578) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.46.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.46.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at com.supersoft.sparkpay.bulk_dispute_processor.config.CorsFilter.doFilter(CorsFilter.java:58) ~[classes/:na]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:116) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:398) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1776) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:975) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:493) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at java.base/java.lang.Thread.run(Thread.java:1623) ~[na:na]
+
+2025-10-21T10:23:27.634+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.service.LiveStatusService        : LiveStatusService: Retrieved live statuses for 0 out of 3 requested keys
+2025-10-21T10:23:27.635+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Retrieved 0 live statuses from database
+2025-10-21T10:23:34.948+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:23:34.948+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:23:34.954+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:24:04.943+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:24:04.943+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:24:04.958+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:24:04.962+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:24:04.962+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:24:04.969+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:24:34.987+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:24:34.988+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:24:34.996+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:25:04.965+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:25:04.966+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:25:04.971+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:25:05.012+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:25:05.013+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:25:05.015+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:25:35.029+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:25:35.031+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:25:35.037+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:26:04.986+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:26:04.988+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:26:04.996+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:26:05.048+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:26:05.050+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:26:05.055+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:26:35.070+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:26:35.072+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:26:35.081+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:27:05.008+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:27:05.008+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:27:05.016+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:27:05.087+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:27:05.087+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:27:05.087+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:27:35.104+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:27:35.105+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:27:35.109+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:28:05.034+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:28:05.034+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:28:05.034+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:28:05.117+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:28:05.118+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:28:05.123+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:28:35.126+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:28:35.126+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:28:35.129+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:29:05.057+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:29:05.059+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:29:05.063+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:29:05.138+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:29:05.139+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:29:05.139+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:29:35.152+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:29:35.152+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:29:35.160+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:30:05.072+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:30:05.075+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:30:05.087+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:30:05.167+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:30:05.173+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:30:05.180+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:30:35.188+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:30:35.192+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:30:35.200+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:31:05.092+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:31:05.092+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:31:05.099+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:31:05.207+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:31:05.207+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:31:05.207+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:31:35.220+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:31:35.220+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:31:35.225+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:32:05.111+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:32:05.112+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:32:05.116+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:32:05.239+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:32:05.239+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:32:05.242+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:32:35.257+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:32:35.259+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:32:35.266+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:33:05.130+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:33:05.130+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:33:05.136+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:33:05.275+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:33:05.276+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:33:05.281+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:33:35.298+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:33:35.298+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:33:35.305+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:34:05.150+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:34:05.155+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:34:05.166+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:34:05.323+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:34:05.324+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:34:05.328+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:34:35.331+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:34:35.331+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:34:35.336+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:35:05.169+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:35:05.171+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:35:05.175+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:35:05.341+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:35:05.342+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:35:05.345+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:35:35.351+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:35:35.351+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:35:35.384+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:36:05.182+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:36:05.185+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:36:05.197+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:36:05.389+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:36:05.391+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:36:05.398+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:36:06.276+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:36:06.276+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:36:06.286+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Getting live statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:36:06.291+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] c.s.s.b.service.LiveStatusService        : LiveStatusService: Getting live statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:36:06.293+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Getting dispute statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:36:06.293+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Executing SQL: SELECT unique_log_code, status, resolved, resolved_by, date_modified, proof_of_reject_uri FROM tbl_disputes WHERE unique_log_code IN (?,?,?)
+2025-10-21T10:36:06.294+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:36:06.294+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT unique_log_code, status, resolved, resolved_by, date_modified, proof_of_reject_uri FROM tbl_disputes WHERE unique_log_code IN (?,?,?)]
+2025-10-21T10:36:06.299+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] c.s.s.b.repository.DisputeRepository     : DisputeRepository: SQL query returned 3 rows
+2025-10-21T10:36:06.300+01:00 ERROR 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] c.s.s.b.repository.DisputeRepository     : Error getting dispute statuses
+
+java.lang.ClassCastException: class java.time.LocalDateTime cannot be cast to class java.sql.Timestamp (java.time.LocalDateTime is in module java.base of loader 'bootstrap'; java.sql.Timestamp is in module java.sql of loader 'platform')
+	at com.supersoft.sparkpay.bulk_dispute_processor.repository.DisputeRepository.getDisputeStatuses(DisputeRepository.java:66) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:578) ~[na:na]
+	at org.springframework.aop.support.AopUtils.invokeJoinpointUsingReflection(AopUtils.java:360) ~[spring-aop-6.2.11.jar:6.2.11]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.invokeJoinpoint(ReflectiveMethodInvocation.java:196) ~[spring-aop-6.2.11.jar:6.2.11]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:163) ~[spring-aop-6.2.11.jar:6.2.11]
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:138) ~[spring-tx-6.2.11.jar:6.2.11]
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:184) ~[spring-aop-6.2.11.jar:6.2.11]
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:728) ~[spring-aop-6.2.11.jar:6.2.11]
+	at com.supersoft.sparkpay.bulk_dispute_processor.repository.DisputeRepository$$SpringCGLIB$$0.getDisputeStatuses(<generated>) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.service.LiveStatusService.getLiveStatuses(LiveStatusService.java:33) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionServiceImpl.getPreviewData(BulkDisputeSessionServiceImpl.java:263) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionServiceImpl.getSessionPreview(BulkDisputeSessionServiceImpl.java:102) ~[classes/:na]
+	at com.supersoft.sparkpay.bulk_dispute_processor.controller.BulkDisputeController.getPreview(BulkDisputeController.java:198) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:578) ~[na:na]
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:258) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:191) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:118) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:991) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:896) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1089) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.46.jar:6.0]
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.2.11.jar:6.2.11]
+	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.46.jar:6.0]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.2.11.jar:6.2.11]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at com.supersoft.sparkpay.bulk_dispute_processor.config.CorsFilter.doFilter(CorsFilter.java:58) ~[classes/:na]
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:116) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:398) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1776) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:975) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:493) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.46.jar:10.1.46]
+	at java.base/java.lang.Thread.run(Thread.java:1623) ~[na:na]
+
+2025-10-21T10:36:06.329+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] c.s.s.b.service.LiveStatusService        : LiveStatusService: Retrieved live statuses for 0 out of 3 requested keys
+2025-10-21T10:36:06.331+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-3] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Retrieved 0 live statuses from database
+2025-10-21T10:36:35.414+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:36:35.415+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:36:35.421+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:37:05.214+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:37:05.214+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:37:05.227+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:37:05.430+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:37:05.431+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:37:05.438+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:37:35.441+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:37:35.442+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:37:35.446+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:38:05.242+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:38:05.256+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:38:05.272+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:38:05.457+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:38:05.463+01:00 DEBUG 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:38:05.469+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:38:22.170+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2025-10-21T10:38:22.271+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2025-10-21T10:38:22.278+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-10-21T10:38:23.677+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-10-21T10:38:23.777+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-10-21T10:38:23.852+01:00  INFO 19972 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-10-21T10:38:55.817+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Starting Application using Java 20.0.2 with PID 34404 (C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\target\classes started by USER in C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor)
+2025-10-21T10:38:55.821+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : No active profile set, falling back to 1 default profile: "default"
+2025-10-21T10:39:00.709+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8445 (http)
+2025-10-21T10:39:00.783+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-21T10:39:00.786+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-10-21T10:39:01.141+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-21T10:39:01.142+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 5211 ms
+2025-10-21T10:39:02.737+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] o.s.v.b.OptionalValidatorFactoryBean     : Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2025-10-21T10:39:03.808+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-21T10:39:04.412+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@31d4b3e8
+2025-10-21T10:39:04.610+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-21T10:39:05.115+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8445 (http) with context path '/'
+2025-10-21T10:39:05.125+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-10-21T10:39:05.290+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#2c604965:0/SimpleConnection@77cc6a28 [delegate=amqp://admin@127.0.0.1:5672/, localPort=51418]
+2025-10-21T10:39:05.462+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Started Application in 11.337 seconds (process running for 12.649)
+2025-10-21T10:39:05.471+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.a.b.JobLauncherApplicationRunner   : Running default command line with: []
+2025-10-21T10:39:05.477+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:39:05.479+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:39:05.521+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:39:05.526+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:39:05.526+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:39:05.539+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:39:14.988+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-21T10:39:14.992+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-10-21T10:39:14.998+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 5 ms
+2025-10-21T10:39:15.208+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:39:15.210+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:39:15.260+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Getting live statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:39:15.262+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.service.LiveStatusService        : LiveStatusService: Getting live statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:39:15.266+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Getting dispute statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:39:15.266+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Executing SQL: SELECT unique_log_code, status, resolved, resolved_by, date_modified, proof_of_reject_uri FROM tbl_disputes WHERE unique_log_code IN (?,?,?)
+2025-10-21T10:39:15.266+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:39:15.266+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT unique_log_code, status, resolved, resolved_by, date_modified, proof_of_reject_uri FROM tbl_disputes WHERE unique_log_code IN (?,?,?)]
+2025-10-21T10:39:15.292+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: SQL query returned 3 rows
+2025-10-21T10:39:15.293+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Found dispute 2033Z0AF460932605557942955 - status: 1, resolved: 1, resolvedBy: system
+2025-10-21T10:39:15.297+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Found dispute 2057EFQY000282000000000282 - status: 1, resolved: 1, resolvedBy: system
+2025-10-21T10:39:15.297+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Found dispute 2057ZPAC945826583935964093 - status: 0, resolved: 0, resolvedBy: system
+2025-10-21T10:39:15.297+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Found 3 dispute statuses out of 3 requested
+2025-10-21T10:39:15.297+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.service.LiveStatusService        : LiveStatusService: Retrieved live statuses for 3 out of 3 requested keys
+2025-10-21T10:39:15.297+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Retrieved 3 live statuses from database
+2025-10-21T10:39:35.530+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:39:35.530+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:39:35.542+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:40:05.553+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:40:05.554+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:40:05.561+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:40:05.563+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:40:05.564+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:40:05.564+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:40:35.570+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:40:35.570+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:40:35.578+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:41:05.570+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:41:05.570+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:41:05.577+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:41:05.586+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:41:05.587+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:41:05.591+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:41:35.594+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:41:35.596+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:41:35.607+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:42:05.583+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:42:05.584+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:42:05.591+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:42:05.615+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:42:05.616+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:42:05.617+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:42:35.632+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:42:35.632+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:42:35.632+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:43:05.592+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:43:05.592+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:43:05.603+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:43:05.640+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:43:05.642+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:43:05.642+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:43:35.657+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:43:35.658+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:43:35.663+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:44:05.616+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:44:05.641+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:44:05.649+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:44:05.678+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:44:05.681+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:44:05.682+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:44:35.697+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:44:35.699+01:00 DEBUG 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:44:35.711+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:44:44.766+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2025-10-21T10:44:44.864+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2025-10-21T10:44:44.889+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-10-21T10:44:46.503+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-10-21T10:44:46.522+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-10-21T10:44:46.537+01:00  INFO 34404 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-10-21T10:48:23.367+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Starting Application using Java 20.0.2 with PID 5708 (C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor\target\classes started by USER in C:\Users\USER\Downloads\sparkpay.bulk_dispute_processor\sparkpay.bulk_dispute_processor)
+2025-10-21T10:48:23.374+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : No active profile set, falling back to 1 default profile: "default"
+2025-10-21T10:48:27.494+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8445 (http)
+2025-10-21T10:48:27.533+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-21T10:48:27.534+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-10-21T10:48:27.724+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-21T10:48:27.726+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4183 ms
+2025-10-21T10:48:29.218+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] o.s.v.b.OptionalValidatorFactoryBean     : Failed to set up a Bean Validation provider: jakarta.validation.NoProviderFoundException: Unable to create a Configuration, because no Jakarta Bean Validation provider could be found. Add a provider like Hibernate Validator (RI) to your classpath.
+2025-10-21T10:48:30.010+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-21T10:48:30.417+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5f3f3d00
+2025-10-21T10:48:30.631+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-21T10:48:31.066+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8445 (http) with context path '/'
+2025-10-21T10:48:31.078+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Attempting to connect to: [localhost:5672]
+2025-10-21T10:48:31.224+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] o.s.a.r.c.CachingConnectionFactory       : Created new connection: rabbitConnectionFactory#2a140ce5:0/SimpleConnection@4ed19b69 [delegate=amqp://admin@127.0.0.1:5672/, localPort=58576]
+2025-10-21T10:48:31.383+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] c.s.s.b.Application                      : Started Application in 9.793 seconds (process running for 11.114)
+2025-10-21T10:48:31.392+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [main] o.s.b.a.b.JobLauncherApplicationRunner   : Running default command line with: []
+2025-10-21T10:48:31.398+01:00 DEBUG 5708 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:48:31.400+01:00 DEBUG 5708 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:48:31.444+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:48:31.451+01:00 DEBUG 5708 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:48:31.453+01:00 DEBUG 5708 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE next_retry_at IS NOT NULL AND next_retry_at <= ? AND retry_count < ? AND status IN ('FAILED', 'PAUSED') ORDER BY next_retry_at ASC]
+2025-10-21T10:48:31.467+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 jobs ready for retry
+2025-10-21T10:49:01.456+01:00 DEBUG 5708 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:49:01.457+01:00 DEBUG 5708 --- [sparkpay.bulk_dispute_processor] [scheduling-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_job WHERE status = ?]
+2025-10-21T10:49:01.461+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [scheduling-1] c.s.s.b.service.AutomaticRetryScheduler  : Found 0 paused jobs for resume
+2025-10-21T10:49:08.372+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-21T10:49:08.373+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-10-21T10:49:08.379+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 4 ms
+2025-10-21T10:49:08.497+01:00 DEBUG 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:49:08.497+01:00 DEBUG 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT * FROM bulk_dispute_session WHERE id = ?]
+2025-10-21T10:49:08.510+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Getting live statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:49:08.511+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.service.LiveStatusService        : LiveStatusService: Getting live statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:49:08.514+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Getting dispute statuses for 3 unique keys: [2033Z0AF460932605557942955, 2057ZPAC945826583935964093, 2057EFQY000282000000000282]
+2025-10-21T10:49:08.514+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Executing SQL: SELECT unique_log_code, status, resolved, resolved_by, date_modified, proof_of_reject_uri FROM tbl_disputes WHERE unique_log_code IN (?,?,?)
+2025-10-21T10:49:08.516+01:00 DEBUG 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL query
+2025-10-21T10:49:08.516+01:00 DEBUG 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] o.s.jdbc.core.JdbcTemplate               : Executing prepared SQL statement [SELECT unique_log_code, status, resolved, resolved_by, date_modified, proof_of_reject_uri FROM tbl_disputes WHERE unique_log_code IN (?,?,?)]
+2025-10-21T10:49:08.526+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: SQL query returned 3 rows
+2025-10-21T10:49:08.527+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Found dispute 2033Z0AF460932605557942955 - status: 1, resolved: 1, resolvedBy: system
+2025-10-21T10:49:08.528+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Found dispute 2057EFQY000282000000000282 - status: 1, resolved: 1, resolvedBy: system
+2025-10-21T10:49:08.528+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Found dispute 2057ZPAC945826583935964093 - status: 0, resolved: 0, resolvedBy: system
+2025-10-21T10:49:08.529+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.repository.DisputeRepository     : DisputeRepository: Found 3 dispute statuses out of 3 requested
+2025-10-21T10:49:08.529+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.service.LiveStatusService        : LiveStatusService: Retrieved live statuses for 3 out of 3 requested keys
+2025-10-21T10:49:08.530+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [http-nio-8445-exec-1] c.s.s.b.s.BulkDisputeSessionServiceImpl  : Retrieved 3 live statuses from database
+2025-10-21T10:49:26.687+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Waiting for workers to finish.
+2025-10-21T10:49:26.755+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [org.springframework.amqp.rabbit.RabbitListenerEndpointContainer#0-2] o.s.a.r.l.SimpleMessageListenerContainer : Successfully waited for workers to finish.
+2025-10-21T10:49:26.759+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-10-21T10:49:28.091+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-10-21T10:49:28.113+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-10-21T10:49:28.130+01:00  INFO 5708 --- [sparkpay.bulk_dispute_processor] [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

@@ -4,6 +4,7 @@ import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeJob;
 import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeSession;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeJobRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeSessionRepository;
+import com.supersoft.sparkpay.bulk_dispute_processor.repository.DisputeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,9 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
     
     @Autowired
     private JobMessagePublisher messagePublisher;
+    
+    @Autowired
+    private LiveStatusService liveStatusService;
 
     @Override
     public SessionUploadResult uploadSession(MultipartFile file, String uploadedBy, String institutionCode, String merchantId) {
@@ -219,6 +223,7 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
     private List<Map<String, String>> getPreviewData(String filePath, int maxRows) throws IOException {
         List<Map<String, String>> preview = new ArrayList<>();
         List<String> headers = new ArrayList<>();
+        List<String> uniqueKeys = new ArrayList<>();
         
         try (var reader = Files.newBufferedReader(Paths.get(filePath))) {
             String headerLine = reader.readLine();
@@ -235,8 +240,62 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
                     rowMap.put(headers.get(i), row.get(i));
                 }
                 preview.add(rowMap);
+                
+                // Collect unique keys for live status lookup
+                // Handle BOM character in "Unique Key" field name
+                String uniqueKey = rowMap.get("Unique Key");
+                if (uniqueKey == null) {
+                    // Try with BOM character
+                    uniqueKey = rowMap.get("﻿Unique Key");
+                }
+                if (uniqueKey != null && !uniqueKey.trim().isEmpty()) {
+                    uniqueKeys.add(uniqueKey.trim());
+                }
+                
                 rowCount++;
             }
+        }
+        
+        // Get live statuses for all unique keys
+        if (!uniqueKeys.isEmpty()) {
+            log.info("Getting live statuses for {} unique keys: {}", uniqueKeys.size(), uniqueKeys);
+            try {
+                Map<String, DisputeRepository.DisputeStatusInfo> liveStatuses = liveStatusService.getLiveStatuses(uniqueKeys);
+                log.info("Retrieved {} live statuses from database", liveStatuses.size());
+                
+                // Add live status to each row
+                for (Map<String, String> row : preview) {
+                    // Handle BOM character in "Unique Key" field name
+                    String uniqueKey = row.get("Unique Key");
+                    if (uniqueKey == null) {
+                        // Try with BOM character
+                        uniqueKey = row.get("﻿Unique Key");
+                    }
+                    if (uniqueKey != null && !uniqueKey.trim().isEmpty()) {
+                        DisputeRepository.DisputeStatusInfo statusInfo = liveStatuses.get(uniqueKey.trim());
+                        if (statusInfo != null) {
+                            row.put("Live Status", statusInfo.getStatusDescription());
+                            row.put("Processed", String.valueOf(statusInfo.isProcessed()));
+                            if (statusInfo.getResolvedBy() != null) {
+                                row.put("Resolved By", statusInfo.getResolvedBy());
+                            }
+                            if (statusInfo.getDateModified() != null) {
+                                row.put("Date Modified", statusInfo.getDateModified().toString());
+                            }
+                            log.debug("Added live status for {}: {}", uniqueKey, statusInfo.getStatusDescription());
+                        } else {
+                            row.put("Live Status", "NOT_FOUND");
+                            row.put("Processed", "false");
+                            log.debug("No live status found for {}", uniqueKey);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Failed to get live statuses for preview", e);
+                // Continue without live status if there's an error
+            }
+        } else {
+            log.info("No unique keys found for live status lookup");
         }
         
         return preview;
