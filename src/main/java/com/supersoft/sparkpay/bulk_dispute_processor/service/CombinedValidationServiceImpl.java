@@ -67,6 +67,9 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
                 // Validate headers
                 validateHeaders(headers, result);
                 
+                // Track unique codes for duplicate validation
+                Set<String> uniqueCodes = new HashSet<>();
+                
                 String line;
                 int rowNumber = 1;
                 int acceptedCount = 0;
@@ -82,7 +85,7 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
                             .map(String::trim)
                             .collect(Collectors.toList());
                     
-                    boolean rowValid = validateRowWithProofs(row, headers, rowNumber, result, proofFileMap);
+                    boolean rowValid = validateRowWithProofs(row, headers, rowNumber, result, proofFileMap, uniqueCodes);
                     
                     if (rowValid) {
                         result.setValidRows(result.getValidRows() + 1);
@@ -204,7 +207,7 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
     }
     
     private boolean validateRowWithProofs(List<String> row, List<String> headers, int rowNumber, 
-                                         CombinedValidationResult result, Map<String, MultipartFile> proofFileMap) {
+                                         CombinedValidationResult result, Map<String, MultipartFile> proofFileMap, Set<String> uniqueCodes) {
         boolean rowIsValid = true;
         
         // Create case-insensitive row map
@@ -218,9 +221,23 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
         if (uniqueKey == null || uniqueKey.trim().isEmpty()) {
             result.addError(rowNumber, "Unique Key", "Missing required value");
             rowIsValid = false;
-        } else if (!uniqueKey.trim().matches("^[A-Za-z0-9]+$")) {
-            result.addError(rowNumber, "Unique Key", "Invalid format '" + uniqueKey + "'. Must be alphanumeric.");
-            rowIsValid = false;
+        } else {
+            String trimmedKey = uniqueKey.trim();
+            
+            // Check for duplicate unique codes
+            if (uniqueCodes.contains(trimmedKey)) {
+                result.addError(rowNumber, "Unique Key", "Duplicate unique code '" + trimmedKey + "'. Each unique code must appear only once in the file.");
+                rowIsValid = false;
+            } else {
+                // Add to set for future duplicate checking
+                uniqueCodes.add(trimmedKey);
+            }
+            
+            // Validate format
+            if (!trimmedKey.matches("^[A-Za-z0-9]+$")) {
+                result.addError(rowNumber, "Unique Key", "Invalid format '" + trimmedKey + "'. Must be alphanumeric.");
+                rowIsValid = false;
+            }
         }
         
         String action = caseInsensitiveRowMap.get("action");

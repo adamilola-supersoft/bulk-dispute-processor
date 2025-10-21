@@ -5,6 +5,7 @@ import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeSession;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeJobRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeSessionRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.DisputeRepository;
+import com.supersoft.sparkpay.bulk_dispute_processor.util.CsvParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -229,6 +230,10 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
             String headerLine = reader.readLine();
             if (headerLine != null) {
                 headers = parseCsvLine(headerLine);
+                // Clean headers by removing BOM from each header
+                headers = headers.stream()
+                        .map(header -> CsvParser.hasBom(header) ? header.substring(1) : header)
+                        .collect(java.util.stream.Collectors.toList());
             }
             
             String line;
@@ -242,12 +247,7 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
                 preview.add(rowMap);
                 
                 // Collect unique keys for live status lookup
-                // Handle BOM character in "Unique Key" field name
                 String uniqueKey = rowMap.get("Unique Key");
-                if (uniqueKey == null) {
-                    // Try with BOM character
-                    uniqueKey = rowMap.get("﻿Unique Key");
-                }
                 if (uniqueKey != null && !uniqueKey.trim().isEmpty()) {
                     uniqueKeys.add(uniqueKey.trim());
                 }
@@ -265,12 +265,7 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
                 
                 // Add live status to each row
                 for (Map<String, String> row : preview) {
-                    // Handle BOM character in "Unique Key" field name
                     String uniqueKey = row.get("Unique Key");
-                    if (uniqueKey == null) {
-                        // Try with BOM character
-                        uniqueKey = row.get("﻿Unique Key");
-                    }
                     if (uniqueKey != null && !uniqueKey.trim().isEmpty()) {
                         DisputeRepository.DisputeStatusInfo statusInfo = liveStatuses.get(uniqueKey.trim());
                         if (statusInfo != null) {

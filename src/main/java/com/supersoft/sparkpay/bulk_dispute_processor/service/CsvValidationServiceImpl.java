@@ -37,6 +37,10 @@ public class CsvValidationServiceImpl implements CsvValidationService {
             result.setHeaders(headers);
             
             validateHeaders(headers, result);
+            
+            // Track unique codes for duplicate validation
+            Set<String> uniqueCodes = new HashSet<>();
+            
             String line;
             int rowNumber = 1;
             while ((line = reader.readLine()) != null) {
@@ -46,7 +50,7 @@ public class CsvValidationServiceImpl implements CsvValidationService {
                 row = row.stream()
                         .map(String::trim)
                         .collect(java.util.stream.Collectors.toList());
-                validateRow(row, headers, rowNumber, result);
+                validateRow(row, headers, rowNumber, result, uniqueCodes);
             }
             
             result.setTotalRows(rowNumber - 1); // Subtract header row
@@ -84,7 +88,7 @@ public class CsvValidationServiceImpl implements CsvValidationService {
         }
     }
 
-    private void validateRow(List<String> row, List<String> headers, int rowNumber, ValidationResult result) {
+    private void validateRow(List<String> row, List<String> headers, int rowNumber, ValidationResult result, Set<String> uniqueCodes) {
         boolean rowIsValid = true;
         
         if (row.size() != headers.size()) {
@@ -123,8 +127,20 @@ public class CsvValidationServiceImpl implements CsvValidationService {
         
         String uniqueKey = caseInsensitiveRowMap.get("unique key");
         if (uniqueKey != null && !uniqueKey.trim().isEmpty()) {
-            if (!uniqueKey.trim().matches("^[A-Za-z0-9]+$")) {
-                result.addError(rowNumber, "Unique Key", "Invalid format '" + uniqueKey + "'. Must be alphanumeric.");
+            String trimmedKey = uniqueKey.trim();
+            
+            // Check for duplicate unique codes
+            if (uniqueCodes.contains(trimmedKey)) {
+                result.addError(rowNumber, "Unique Key", "Duplicate unique code '" + trimmedKey + "'. Each unique code must appear only once in the file.");
+                rowIsValid = false;
+            } else {
+                // Add to set for future duplicate checking
+                uniqueCodes.add(trimmedKey);
+            }
+            
+            // Validate format
+            if (!trimmedKey.matches("^[A-Za-z0-9]+$")) {
+                result.addError(rowNumber, "Unique Key", "Invalid format '" + trimmedKey + "'. Must be alphanumeric.");
                 rowIsValid = false;
             }
         }
