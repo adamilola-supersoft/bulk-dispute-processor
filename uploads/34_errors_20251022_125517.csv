@@ -1,6 +1,0 @@
-dispute_id,action,reason,notes,error_message
-2033Z0AF460932605557942955,	Reject,	7.96263E+13 // PROCESSING_ERROR: No matching dispute found or already processed // Type: PERMANENT
-2057ZPAC945826583935964093,	Accept	
-2057EFQY000282000000000282,	Reject	7.96263E+13 // VALIDATION_ERRORS: [Action] Invalid action value 'Reject	7.96263E+13'. Must be one of: [ACCEPT, REJECT, Accept, Reject]
-2033Z0AF460932605557942955		 // VALIDATION_ERRORS: [Unique Key] Duplicate unique code '2033Z0AF460932605557942955'. Each unique code must appear only once in the file.; [Action] Missing required value
-2033Z0AF460932605557942955,	Rekt	 // VALIDATION_ERRORS: [Unique Key] Duplicate unique code '2033Z0AF460932605557942955'. Each unique code must appear only once in the file.; [Action] Invalid action value 'Rekt'. Must be one of: [ACCEPT, REJECT, Accept, Reject]

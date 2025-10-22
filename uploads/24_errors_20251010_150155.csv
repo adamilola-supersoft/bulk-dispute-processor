@@ -1,7 +1,0 @@
-dispute_id,action,reason,notes,error_message
-9070J7GJ004297000000004297,Accept, // Error: No matching dispute found or already processed
-9070JDL9007775000000007775,Reject,79626327486937 // Error: No matching dispute found or already processed
-9070JDL9007777000000007777,Accept, // Error: No matching dispute found or already processed
-9070IHEO012491000000012491,Reject, // Error: No matching dispute found or already processed
-9070GBHM003910000000003910,Reject, // Error: No matching dispute found or already processed
-9070GQ0K000622000000000622,Reject,79626327486933 // Error: No matching dispute found or already processed
