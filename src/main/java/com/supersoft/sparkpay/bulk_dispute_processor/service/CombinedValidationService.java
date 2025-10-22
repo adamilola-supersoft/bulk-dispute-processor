@@ -41,6 +41,7 @@ public interface CombinedValidationService {
     
     class CombinedValidationResult {
         private boolean valid;
+        private boolean formatValid = true;
         private List<ValidationError> errors;
         private List<String> headers;
         private int totalRows;
@@ -199,6 +200,8 @@ public interface CombinedValidationService {
         public String getCsvFilePath() { return csvFilePath; }
         public List<String> getProofFilePaths() { return proofFilePaths; }
         public Long getSessionId() { return sessionId; }
+        public boolean isFormatValid() { return formatValid; }
+        public void setFormatValid(boolean formatValid) { this.formatValid = formatValid; }
         
         // Helper methods
         public int getRequested() { return totalRows; }

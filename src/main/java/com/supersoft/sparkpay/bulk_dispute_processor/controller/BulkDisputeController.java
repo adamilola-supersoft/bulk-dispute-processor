@@ -4,6 +4,7 @@ import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeJob;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeJobRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.BulkDisputeSessionService;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.ProofService;
+import com.supersoft.sparkpay.bulk_dispute_processor.service.CsvExportService;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.EnhancedJobProcessor;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.JobResumeService;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.JobRetryService;
@@ -41,6 +42,9 @@ public class BulkDisputeController {
     
     @Autowired
     private BulkDisputeSessionService sessionService;
+    
+    @Autowired
+    private CsvExportService csvExportService;
     
     @Autowired
     private ProofService proofService;
@@ -145,7 +149,7 @@ public class BulkDisputeController {
     }
 
     @Operation(summary = "Preview CSV data", 
-               description = "Get a preview of the CSV data in the session with pagination")
+               description = "Get a preview of the CSV data in the session with pagination. Use either 'page' parameter for page-based navigation or 'offset' for row-based navigation.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Preview data retrieved successfully",
                     content = @Content(schema = @Schema(example = """
@@ -168,7 +172,15 @@ public class BulkDisputeController {
                         }
                       ],
                       "totalRows": 100,
-                      "version": 0
+                      "version": 0,
+                      "hasErrors": false,
+                      "pagesWithErrors": [],
+                      "pagination": {
+                        "currentPage": 0,
+                        "pageSize": 200,
+                        "totalPages": 1,
+                        "totalElements": 100
+                      }
                     }
                     """))),
         @ApiResponse(responseCode = "404", description = "Session not found",
@@ -190,10 +202,17 @@ public class BulkDisputeController {
             @PathVariable Long sessionId,
             @Parameter(description = "Number of rows to return")
             @RequestParam(value = "rows", defaultValue = "200") int rows,
+            @Parameter(description = "Page number (0-based)")
+            @RequestParam(value = "page", defaultValue = "0") int page,
             @Parameter(description = "Number of rows to skip")
-            @RequestParam(value = "offset", defaultValue = "0") int offset) {
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
+            @Parameter(description = "Include validation errors in response")
+            @RequestParam(value = "includeErrors", defaultValue = "false") boolean includeErrors) {
         
-        BulkDisputeSessionService.SessionPreviewResult result = sessionService.getSessionPreview(sessionId, rows, offset);
+        // Calculate offset from page if page is provided, otherwise use provided offset
+        int calculatedOffset = (page > 0) ? page * rows : offset;
+        
+        BulkDisputeSessionService.SessionPreviewResult result = sessionService.getSessionPreview(sessionId, rows, calculatedOffset, includeErrors);
         
         if (!result.isSuccess()) {
             if (result.getError().contains("not found")) {
@@ -203,11 +222,23 @@ public class BulkDisputeController {
                     .body(Map.of("error", result.getError()));
         }
         
+        // Calculate pagination metadata
+        int totalPages = (int) Math.ceil((double) result.getTotalRows() / rows);
+        int currentPage = calculatedOffset / rows;
+        
         return ResponseEntity.ok(Map.of(
                 "sessionId", result.getSessionId(),
                 "preview", result.getPreview(),
                 "totalRows", result.getTotalRows(),
-                "version", result.getVersion()
+                "version", result.getVersion(),
+                "hasErrors", result.isHasErrors(),
+                "pagesWithErrors", result.getPagesWithErrors(),
+                "pagination", Map.of(
+                        "currentPage", currentPage,
+                        "pageSize", rows,
+                        "totalPages", totalPages,
+                        "totalElements", result.getTotalRows()
+                )
         ));
     }
 
@@ -588,6 +619,64 @@ public class BulkDisputeController {
             log.error("Error getting file blob for session {}", sessionId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "File blob failed: " + e.getMessage()));
+        }
+    }
+
+    @Operation(summary = "Download session CSV with errors", 
+               description = "Download the session CSV file with an optional errors column")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "CSV file downloaded successfully",
+                    content = @Content(schema = @Schema(example = """
+                    CSV file with optional errors column
+                    """))),
+        @ApiResponse(responseCode = "404", description = "Session not found",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Session not found"
+                    }
+                    """))),
+        @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(example = """
+                    {
+                      "error": "Download failed: File not found"
+                    }
+                    """)))
+    })
+    @GetMapping(value = "/sessions/download/{sessionId}", produces = "text/csv")
+    public ResponseEntity<?> downloadSessionCsv(
+            @Parameter(description = "Session ID", required = true)
+            @PathVariable Long sessionId,
+            @Parameter(description = "Include errors column in CSV")
+            @RequestParam(value = "withErrors", defaultValue = "false") boolean withErrors) {
+        try {
+            byte[] fileContent;
+            String filename;
+            
+            if (withErrors) {
+                // Get session file path
+                String filePath = sessionService.getSessionFilePath(sessionId);
+                if (filePath == null) {
+                    return ResponseEntity.notFound().build();
+                }
+                
+                // Export with errors
+                fileContent = csvExportService.exportCsvWithErrors(sessionId, filePath);
+                filename = "disputes_with_errors.csv";
+            } else {
+                // Export original file
+                fileContent = sessionService.getSessionFileBlob(sessionId);
+                filename = "disputes.csv";
+            }
+            
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .header("Content-Type", "text/csv")
+                    .body(fileContent);
+
+        } catch (Exception e) {
+            log.error("Error downloading CSV for session {} withErrors={}", sessionId, withErrors, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Download failed: " + e.getMessage()));
         }
     }
 
@@ -1146,6 +1235,65 @@ public class BulkDisputeController {
             log.error("Unexpected error in controller while validating session and proof files", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Internal server error: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/jobs/error-report/{jobId}", produces = "text/csv")
+    @Operation(
+        summary = "Download error report for a job",
+        description = "Downloads the error report CSV file for a specific job. The error report contains all failed rows with their error details.",
+        tags = {"Jobs"}
+    )
+    public ResponseEntity<?> downloadErrorReport(
+            @Parameter(description = "Job ID", required = true)
+            @PathVariable Long jobId) {
+        
+        try {
+            log.info("Received request to download error report for job: {}", jobId);
+            
+            // Get job details to find the error report path
+            Optional<BulkDisputeJob> jobOpt = jobRepository.findById(jobId);
+            if (jobOpt.isEmpty()) {
+                log.warn("Job not found: {}", jobId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Job not found"));
+            }
+            
+            BulkDisputeJob job = jobOpt.get();
+            String errorReportPath = job.getErrorReportPath();
+            
+            if (errorReportPath == null || errorReportPath.trim().isEmpty()) {
+                log.warn("No error report available for job: {}", jobId);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "No error report available for this job"));
+            }
+            
+            // Check if the error report file exists
+            java.io.File errorReportFile = new java.io.File(errorReportPath);
+            if (!errorReportFile.exists()) {
+                log.warn("Error report file not found: {}", errorReportPath);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Error report file not found"));
+            }
+            
+            // Read the error report file
+            byte[] fileContent = java.nio.file.Files.readAllBytes(errorReportFile.toPath());
+            
+            // Generate filename with job ID and timestamp
+            String timestamp = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String filename = String.format("error_report_job_%d_%s.csv", jobId, timestamp);
+            
+            log.info("Successfully prepared error report download for job: {}, file: {}", jobId, filename);
+            
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .header("Content-Type", "text/csv; charset=UTF-8")
+                    .body(fileContent);
+            
+        } catch (Exception e) {
+            log.error("Error downloading error report for job {}: {}", jobId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to download error report: " + e.getMessage()));
         }
     }
 

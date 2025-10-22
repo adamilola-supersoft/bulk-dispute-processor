@@ -118,7 +118,7 @@ public class BulkDisputeSessionRepository {
     }
 
     public List<BulkDisputeSessionService.SessionSummary> findSessionsWithPagination(int page, int size, String status, String uploadedBy, String institutionCode, String merchantId) {
-        StringBuilder sql = new StringBuilder("SELECT s.id, s.institution_code, s.merchant_id, s.uploaded_by, s.file_name, s.status, s.total_rows, s.valid_rows, s.invalid_rows, s.created_at, s.updated_at, j.id as job_id, j.status as job_status, j.processed_rows, j.success_count, j.failure_count FROM bulk_dispute_session s LEFT JOIN bulk_dispute_job j ON s.id = j.session_id WHERE 1=1");
+        StringBuilder sql = new StringBuilder("SELECT s.id, s.institution_code, s.merchant_id, s.uploaded_by, s.file_name, s.status, s.total_rows, s.valid_rows, s.invalid_rows, s.created_at, s.updated_at, j.id as job_id, j.status as job_status, j.processed_rows, j.success_count, j.failure_count, CASE WHEN e.session_id IS NOT NULL THEN 1 ELSE 0 END as has_errors FROM bulk_dispute_session s LEFT JOIN bulk_dispute_job j ON s.id = j.session_id LEFT JOIN (SELECT DISTINCT session_id FROM bulk_dispute_session_errors) e ON s.id = e.session_id WHERE 1=1");
         List<Object> params = new ArrayList<>();
         
         if (status != null && !status.trim().isEmpty()) {
@@ -165,7 +165,8 @@ public class BulkDisputeSessionRepository {
                 rs.getString("job_status"),
                 rs.getInt("processed_rows"),
                 rs.getInt("success_count"),
-                rs.getInt("failure_count")
+                rs.getInt("failure_count"),
+                rs.getInt("has_errors") == 1
             );
         }, params.toArray());
     }

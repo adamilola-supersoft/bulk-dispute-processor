@@ -4,6 +4,7 @@ import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeJob;
 import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeSession;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeJobRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeSessionRepository;
+import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeSessionErrorRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.DisputeRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.util.CsvParser;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,9 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
     
     @Autowired
     private LiveStatusService liveStatusService;
+    
+    @Autowired
+    private BulkDisputeSessionErrorRepository errorRepository;
 
     @Override
     public SessionUploadResult uploadSession(MultipartFile file, String uploadedBy, String institutionCode, String merchantId) {
@@ -68,17 +72,23 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
 
             CsvValidationService.ValidationResult validationResult = validationService.validateCsv(file);
             
-            if (!validationResult.isValid()) {
+            // Check format validation first
+            if (!validationResult.isFormatValid()) {
                 session.setStatus(BulkDisputeSession.SessionStatus.UPLOADED);
                 sessionRepository.save(session);
                 
                 return SessionUploadResult.validationFailure(validationResult.getErrors());
             }
 
+            // Store validation errors if any
+            if (!validationResult.getErrors().isEmpty()) {
+                storeValidationErrors(session.getId(), validationResult);
+            }
+
             session.setStatus(BulkDisputeSession.SessionStatus.VALIDATED);
             session.setTotalRows(validationResult.getTotalRows());
-            session.setValidRows(validationResult.getTotalRows());
-            session.setInvalidRows(0);
+            session.setValidRows(validationResult.getValidRows());
+            session.setInvalidRows(validationResult.getInvalidRows());
             sessionRepository.save(session);
 
             List<Map<String, String>> preview = getPreviewData(finalFilePath, 200);
@@ -93,6 +103,11 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
 
     @Override
     public SessionPreviewResult getSessionPreview(Long sessionId, int rows, int offset) {
+        return getSessionPreview(sessionId, rows, offset, false);
+    }
+
+    @Override
+    public SessionPreviewResult getSessionPreview(Long sessionId, int rows, int offset, boolean includeErrors) {
         try {
             Optional<BulkDisputeSession> sessionOpt = sessionRepository.findById(sessionId);
             if (sessionOpt.isEmpty()) {
@@ -102,7 +117,16 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
             BulkDisputeSession session = sessionOpt.get();
             List<Map<String, String>> preview = getPreviewData(session.getFilePath(), rows);
 
-            return SessionPreviewResult.success(sessionId, preview, session.getTotalRows(), session.getVersion());
+            // Add error information if requested
+            if (includeErrors) {
+                addErrorInformationToPreview(sessionId, preview, offset, rows);
+            }
+
+            // Calculate error information
+            boolean hasErrors = errorRepository.hasAnyErrors(sessionId);
+            List<Integer> pagesWithErrors = calculatePagesWithErrors(sessionId, session.getTotalRows(), rows);
+
+            return SessionPreviewResult.success(sessionId, preview, session.getTotalRows(), session.getVersion(), hasErrors, pagesWithErrors);
 
         } catch (Exception e) {
             log.error("Error getting preview for session {}", sessionId, e);
@@ -294,6 +318,64 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
         return preview;
     }
 
+    /**
+     * Store validation errors in the database
+     */
+    private void storeValidationErrors(Long sessionId, CsvValidationService.ValidationResult validationResult) {
+        try {
+            List<BulkDisputeSessionErrorRepository.SessionError> errors = validationResult.getErrors().stream()
+                    .map(error -> new BulkDisputeSessionErrorRepository.SessionError(
+                            error.getRow(),
+                            error.getColumn(),
+                            error.getReason()
+                    ))
+                    .collect(java.util.stream.Collectors.toList());
+            
+            errorRepository.saveErrors(sessionId, errors);
+            log.info("Stored {} validation errors for session {}", errors.size(), sessionId);
+        } catch (Exception e) {
+            log.error("Error storing validation errors for session {}: {}", sessionId, e.getMessage());
+        }
+    }
+
+    /**
+     * Add error information to preview data
+     */
+    private void addErrorInformationToPreview(Long sessionId, List<Map<String, String>> preview, int offset, int rows) {
+        try {
+            // Get row numbers for current page
+            List<Integer> rowNumbers = new ArrayList<>();
+            for (int i = 0; i < preview.size(); i++) {
+                rowNumbers.add(offset + i + 1); // +1 because rows are 1-indexed
+            }
+            
+            // Get errors for these rows
+            List<BulkDisputeSessionErrorRepository.SessionError> errors = errorRepository.getErrorsForRows(sessionId, rowNumbers);
+            Map<Integer, List<BulkDisputeSessionErrorRepository.SessionError>> errorsByRow = errors.stream()
+                    .collect(java.util.stream.Collectors.groupingBy(BulkDisputeSessionErrorRepository.SessionError::getRowNumber));
+            
+            // Add error information to each row
+            for (int i = 0; i < preview.size(); i++) {
+                Map<String, String> row = preview.get(i);
+                int rowNumber = offset + i + 1;
+                
+                List<BulkDisputeSessionErrorRepository.SessionError> rowErrors = errorsByRow.get(rowNumber);
+                if (rowErrors != null && !rowErrors.isEmpty()) {
+                    row.put("hasErrors", "true");
+                    String errorMessages = rowErrors.stream()
+                            .map(BulkDisputeSessionErrorRepository.SessionError::getErrorMessage)
+                            .collect(java.util.stream.Collectors.joining(" | "));
+                    row.put("errors", errorMessages);
+                } else {
+                    row.put("hasErrors", "false");
+                    row.put("errors", "");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error adding error information to preview for session {}: {}", sessionId, e.getMessage());
+        }
+    }
+
     private List<String> parseCsvLine(String line) {
         List<String> result = new ArrayList<>();
         boolean inQuotes = false;
@@ -314,5 +396,34 @@ public class BulkDisputeSessionServiceImpl implements BulkDisputeSessionService 
         
         result.add(currentField.toString().trim());
         return result;
+    }
+
+    /**
+     * Calculate which pages have errors based on pagination
+     */
+    private List<Integer> calculatePagesWithErrors(Long sessionId, int totalRows, int pageSize) {
+        try {
+            // Get all rows with errors
+            List<BulkDisputeSessionErrorRepository.SessionError> allErrors = errorRepository.getErrorsBySessionId(sessionId);
+            Set<Integer> rowsWithErrors = allErrors.stream()
+                    .map(BulkDisputeSessionErrorRepository.SessionError::getRowNumber)
+                    .collect(java.util.stream.Collectors.toSet());
+            
+            if (rowsWithErrors.isEmpty()) {
+                return List.of();
+            }
+            
+            // Calculate which pages contain rows with errors
+            Set<Integer> pagesWithErrors = new HashSet<>();
+            for (int rowNumber : rowsWithErrors) {
+                int pageNumber = (rowNumber - 1) / pageSize; // Convert to 0-based page number
+                pagesWithErrors.add(pageNumber);
+            }
+            
+            return pagesWithErrors.stream().sorted().collect(java.util.stream.Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error calculating pages with errors for session {}: {}", sessionId, e.getMessage());
+            return List.of();
+        }
     }
 }

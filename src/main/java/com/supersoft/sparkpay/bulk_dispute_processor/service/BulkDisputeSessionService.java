@@ -18,6 +18,7 @@ public interface BulkDisputeSessionService {
      * Get preview data for a session
      */
     SessionPreviewResult getSessionPreview(Long sessionId, int rows, int offset);
+    SessionPreviewResult getSessionPreview(Long sessionId, int rows, int offset, boolean includeErrors);
     
     /**
      * Overwrite session file with optimistic locking
@@ -94,24 +95,28 @@ public interface BulkDisputeSessionService {
         private final int totalRows;
         private final int version;
         private final String error;
+        private final boolean hasErrors;
+        private final List<Integer> pagesWithErrors;
         
         public SessionPreviewResult(boolean success, Long sessionId, List<Map<String, String>> preview, 
-                                   int totalRows, int version, String error) {
+                                   int totalRows, int version, String error, boolean hasErrors, List<Integer> pagesWithErrors) {
             this.success = success;
             this.sessionId = sessionId;
             this.preview = preview;
             this.totalRows = totalRows;
             this.version = version;
             this.error = error;
+            this.hasErrors = hasErrors;
+            this.pagesWithErrors = pagesWithErrors;
         }
         
         public static SessionPreviewResult success(Long sessionId, List<Map<String, String>> preview, 
-                                                 int totalRows, int version) {
-            return new SessionPreviewResult(true, sessionId, preview, totalRows, version, null);
+                                                 int totalRows, int version, boolean hasErrors, List<Integer> pagesWithErrors) {
+            return new SessionPreviewResult(true, sessionId, preview, totalRows, version, null, hasErrors, pagesWithErrors);
         }
         
         public static SessionPreviewResult failure(String error) {
-            return new SessionPreviewResult(false, null, null, 0, 0, error);
+            return new SessionPreviewResult(false, null, null, 0, 0, error, false, List.of());
         }
         
         // Getters
@@ -121,6 +126,8 @@ public interface BulkDisputeSessionService {
         public int getTotalRows() { return totalRows; }
         public int getVersion() { return version; }
         public String getError() { return error; }
+        public boolean isHasErrors() { return hasErrors; }
+        public List<Integer> getPagesWithErrors() { return pagesWithErrors; }
     }
     
     class SessionOverwriteResult {
@@ -231,10 +238,11 @@ public interface BulkDisputeSessionService {
         private final String createdAt;
         private final String updatedAt;
         private final JobSummary job;
+        private final boolean hasErrors;
         
         public SessionSummary(Long id, String institutionCode, String merchantId, String uploadedBy, String fileName, String status, 
                             int totalRows, int validRows, int invalidRows, String createdAt, String updatedAt,
-                            Long jobId, String jobStatus, int processedRows, int successCount, int failureCount) {
+                            Long jobId, String jobStatus, int processedRows, int successCount, int failureCount, boolean hasErrors) {
             this.id = id;
             this.institutionCode = institutionCode;
             this.merchantId = merchantId;
@@ -247,6 +255,7 @@ public interface BulkDisputeSessionService {
             this.createdAt = createdAt;
             this.updatedAt = updatedAt;
             this.job = jobId != null ? new JobSummary(jobId, jobStatus, processedRows, successCount, failureCount) : null;
+            this.hasErrors = hasErrors;
         }
         
         // Getters
@@ -262,6 +271,7 @@ public interface BulkDisputeSessionService {
         public String getCreatedAt() { return createdAt; }
         public String getUpdatedAt() { return updatedAt; }
         public JobSummary getJob() { return job; }
+        public boolean isHasErrors() { return hasErrors; }
     }
     
     class JobSummary {

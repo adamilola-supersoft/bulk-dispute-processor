@@ -9,16 +9,21 @@ public interface CsvValidationService {
         private java.util.List<String> headers = new java.util.ArrayList<>();
         private java.util.List<ValidationError> errors = new java.util.ArrayList<>();
         private java.util.List<String> warnings = new java.util.ArrayList<>();
+        private java.util.Map<Integer, java.util.List<ValidationError>> rowErrors = new java.util.HashMap<>();
         private int totalRows = 0;
         private int validRows = 0;
         private int invalidRows = 0;
+        private boolean formatValid = true;
 
         public void addError(ValidationError error) {
             errors.add(error);
+            rowErrors.computeIfAbsent(error.getRow(), k -> new java.util.ArrayList<>()).add(error);
         }
 
         public void addError(int row, String column, String reason) {
-            errors.add(new ValidationError(row, column, reason));
+            ValidationError error = new ValidationError(row, column, reason);
+            errors.add(error);
+            rowErrors.computeIfAbsent(row, k -> new java.util.ArrayList<>()).add(error);
         }
 
         public void addWarning(String warning) {
@@ -27,6 +32,18 @@ public interface CsvValidationService {
 
         public boolean isValid() {
             return errors.isEmpty();
+        }
+
+        public boolean isFormatValid() {
+            return formatValid;
+        }
+
+        public void setFormatValid(boolean formatValid) {
+            this.formatValid = formatValid;
+        }
+
+        public boolean hasAnyValidRows() {
+            return validRows > 0;
         }
 
         public String getErrorSummary() {
@@ -42,6 +59,7 @@ public interface CsvValidationService {
         public void setHeaders(java.util.List<String> headers) { this.headers = headers; }
         public java.util.List<ValidationError> getErrors() { return errors; }
         public java.util.List<String> getWarnings() { return warnings; }
+        public java.util.Map<Integer, java.util.List<ValidationError>> getRowErrors() { return rowErrors; }
         public int getTotalRows() { return totalRows; }
         public void setTotalRows(int totalRows) { this.totalRows = totalRows; }
         public int getValidRows() { return validRows; }

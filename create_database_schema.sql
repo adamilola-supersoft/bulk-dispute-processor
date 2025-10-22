@@ -2,6 +2,12 @@
 -- Manual database schema creation script
 -- Run this script in MySQL to create the complete bulk dispute processing system
 
+-- DISPUTE STATUS MAPPING:
+-- PENDING: status -1, resolved 0 OR status -2, resolved 1
+-- ACCEPTED: status 0, resolved 0 OR status -3, resolved 1  
+-- REJECTED: status -4, resolved 1 OR status 1, resolved 1
+-- UNKNOWN: any other combination
+
 -- Create database if it doesn't exist
 CREATE DATABASE IF NOT EXISTS bulk_dispute_db;
 USE bulk_dispute_db;
@@ -73,6 +79,24 @@ CREATE TABLE bulk_dispute_job_audit (
     INDEX idx_created_at (created_at)
 );
 
+
+-- Insert sample dispute data for testing
+
+-- Create bulk_dispute_session_errors table
+-- This table stores validation errors for each row in a session
+CREATE TABLE bulk_dispute_session_errors (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    session_id BIGINT NOT NULL,
+    row_number INT NOT NULL,
+    column_name VARCHAR(100),
+    error_message TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES bulk_dispute_session(id) ON DELETE CASCADE,
+    INDEX idx_session_id (session_id),
+    INDEX idx_row_number (row_number)
+);
+
 -- Show tables created
 SHOW TABLES;
+
 

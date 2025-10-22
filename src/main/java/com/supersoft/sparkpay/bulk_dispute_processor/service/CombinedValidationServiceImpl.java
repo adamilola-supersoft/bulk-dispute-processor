@@ -3,6 +3,7 @@ package com.supersoft.sparkpay.bulk_dispute_processor.service;
 import com.supersoft.sparkpay.bulk_dispute_processor.config.ValidationConstants;
 import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeSession;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeSessionRepository;
+import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeSessionErrorRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.util.CsvParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
     
     @Autowired
     private FileService fileService;
+    
+    @Autowired
+    private BulkDisputeSessionErrorRepository errorRepository;
     
     @Autowired
     private ProofService proofService;
@@ -64,9 +68,13 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
                         .collect(Collectors.toList());
                 result.setHeaders(headers);
                 
-                // Validate headers
-                validateHeaders(headers, result);
+                // Format validation - check CSV structure and required columns
+                if (!validateFormat(headers, result)) {
+                    result.setFormatValid(false);
+                    return result.setElapsedMs(System.currentTimeMillis() - startTime);
+                }
                 
+                // Business validation - check data rules
                 // Track unique codes for duplicate validation
                 Set<String> uniqueCodes = new HashSet<>();
                 
@@ -193,6 +201,26 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
         return filename.substring(0, lastDotIndex);
     }
     
+    /**
+     * Format validation - check CSV structure and required columns
+     */
+    private boolean validateFormat(List<String> headers, CombinedValidationResult result) {
+        Set<String> requiredHeaders = Set.of("unique key", "action");
+        Set<String> headerSet = headers.stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+        
+        boolean formatValid = true;
+        for (String requiredHeader : requiredHeaders) {
+            if (!headerSet.contains(requiredHeader)) {
+                result.addError(0, "HEADER", "Missing required column: " + requiredHeader);
+                formatValid = false;
+            }
+        }
+        
+        return formatValid;
+    }
+
     private void validateHeaders(List<String> headers, CombinedValidationResult result) {
         Set<String> requiredHeaders = Set.of("unique key", "action");
         Set<String> headerSet = headers.stream()
@@ -216,50 +244,52 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
             caseInsensitiveRowMap.put(headers.get(i).toLowerCase(), row.get(i));
         }
         
-        // Validate required fields
+        // Validate required fields (format validation)
         String uniqueKey = caseInsensitiveRowMap.get("unique key");
         if (uniqueKey == null || uniqueKey.trim().isEmpty()) {
             result.addError(rowNumber, "Unique Key", "Missing required value");
-            rowIsValid = false;
+            rowIsValid = false; // This is format validation - required field missing
         } else {
             String trimmedKey = uniqueKey.trim();
             
-            // Check for duplicate unique codes
+            // Check for duplicate unique codes (business rule)
             if (uniqueCodes.contains(trimmedKey)) {
                 result.addError(rowNumber, "Unique Key", "Duplicate unique code '" + trimmedKey + "'. Each unique code must appear only once in the file.");
-                rowIsValid = false;
+                rowIsValid = false; // Mark as invalid for counting purposes
             } else {
                 // Add to set for future duplicate checking
                 uniqueCodes.add(trimmedKey);
             }
             
-            // Validate format
+            // Validate format (format validation)
             if (!trimmedKey.matches("^[A-Za-z0-9]+$")) {
                 result.addError(rowNumber, "Unique Key", "Invalid format '" + trimmedKey + "'. Must be alphanumeric.");
-                rowIsValid = false;
+                rowIsValid = false; // This is format validation - invalid format
             }
         }
         
         String action = caseInsensitiveRowMap.get("action");
         if (action == null || action.trim().isEmpty()) {
             result.addError(rowNumber, "Action", "Missing required value");
-            rowIsValid = false;
+            rowIsValid = false; // This is format validation - required field missing
         } else if (!ValidationConstants.VALID_ACTIONS.contains(action.toUpperCase())) {
             result.addError(rowNumber, "Action", "Invalid action value '" + action + "'. Must be one of: " + ValidationConstants.VALID_ACTIONS);
-            rowIsValid = false;
+            rowIsValid = false; // Mark as invalid for counting purposes
         }
         
-        // Validate proof requirement for REJECT actions using uploaded files
+        // Validate proof requirement for REJECT actions using uploaded files (business rule)
         if ("REJECT".equalsIgnoreCase(action) && uniqueKey != null && !uniqueKey.trim().isEmpty()) {
             if (!proofFileMap.containsKey(uniqueKey.trim())) {
+                log.info("Adding proof validation error for row {}: missing proof for unique key {}", rowNumber, uniqueKey.trim());
                 result.addError(rowNumber, "Proof", "Proof file is mandatory for REJECT actions. Please provide proof file for: " + uniqueKey.trim());
-                rowIsValid = false;
+                rowIsValid = false; // Mark as invalid for counting purposes
             } else {
                 // Validate the proof file if it exists
                 MultipartFile proofFile = proofFileMap.get(uniqueKey.trim());
                 validateProofFile(proofFile, uniqueKey.trim(), rowNumber, result);
+                // Check if proof file validation failed
                 if (result.getErrors().stream().anyMatch(error -> error.getRow() == rowNumber && "Proof".equals(error.getColumn()))) {
-                    rowIsValid = false;
+                    rowIsValid = false; // Mark as invalid for counting purposes
                 }
             }
         }
@@ -279,11 +309,16 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
             // First, perform validation
             result = validateCsvWithProofs(csvFile, proofFiles);
             
-            // If validation fails, return early without saving files
-            if (!result.isValid()) {
-                log.warn("CSV validation failed with {} errors", result.getErrors().size());
+            // Check format validation first
+            if (!result.isFormatValid()) {
+                log.warn("CSV format validation failed with {} errors", result.getErrors().size());
                 result.setElapsedMs(System.currentTimeMillis() - startTime);
                 return result;
+            }
+            
+            // If business validation fails but format is valid, continue with session creation
+            if (!result.isValid()) {
+                log.warn("CSV business validation failed with {} errors, but format is valid - proceeding with session creation", result.getErrors().size());
             }
             
             log.info("CSV validation successful, creating session");
@@ -308,6 +343,14 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
                 session = sessionRepository.save(session);
                 log.info("Session created with ID: {}", session.getId());
                 result.setSessionId(session.getId());
+                
+                // Store validation errors if any
+                if (!result.getErrors().isEmpty()) {
+                    log.info("Storing {} validation errors for session {}", result.getErrors().size(), session.getId());
+                    storeValidationErrors(session.getId(), result);
+                } else {
+                    log.info("No validation errors to store for session {}", session.getId());
+                }
             } catch (Exception e) {
                 log.error("Failed to create session in database", e);
                 result.addError(0, "DATABASE", "Failed to create session: " + e.getMessage());
@@ -412,12 +455,18 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
             // Perform combined validation and save files
             CombinedValidationResult result = validateAndSaveCsvWithProofs(csvFile, validProofFiles, uploadedBy, institutionCode, merchantId);
             
-            if (!result.isValid()) {
-                log.warn("Validation failed with {} errors", result.getErrors().size());
+            // Check format validation first
+            if (!result.isFormatValid()) {
+                log.warn("Format validation failed with {} errors", result.getErrors().size());
                 return Map.of(
                         "error", "Validation failed",
                         "validationErrors", result.getErrors()
                 );
+            }
+            
+            // If business validation fails but format is valid, continue with session creation
+            if (!result.isValid()) {
+                log.warn("Business validation failed with {} errors, but format is valid - proceeding with session creation", result.getErrors().size());
             }
             
             log.info("Validation successful, session ID: {}", result.getSessionId());
@@ -435,6 +484,26 @@ public class CombinedValidationServiceImpl implements CombinedValidationService 
         } catch (Exception e) {
             log.error("Unexpected error validating session and proof files", e);
             return Map.of("error", "Validation failed: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Store validation errors in the database
+     */
+    private void storeValidationErrors(Long sessionId, CombinedValidationResult result) {
+        try {
+            List<BulkDisputeSessionErrorRepository.SessionError> errors = result.getErrors().stream()
+                    .map(error -> new BulkDisputeSessionErrorRepository.SessionError(
+                            error.getRow(),
+                            error.getColumn(),
+                            error.getReason()
+                    ))
+                    .collect(Collectors.toList());
+            
+            errorRepository.saveErrors(sessionId, errors);
+            log.info("Stored {} validation errors for session {}", errors.size(), sessionId);
+        } catch (Exception e) {
+            log.error("Failed to store validation errors for session {}: {}", sessionId, e.getMessage());
         }
     }
 }

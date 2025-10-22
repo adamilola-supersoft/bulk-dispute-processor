@@ -1,0 +1,6 @@
+dispute_id,action,reason,notes,error_message
+2033Z0AF460932605557942955,	Reject,	7.96263E+13 // Validation Errors: Proof file is mandatory for REJECT actions. Please provide proof file for: 2033Z0AF460932605557942955 // Type: VALIDATION_ERROR
+2057ZPAC945826583935964093,	Accept	
+2057EFQY000282000000000282,	Reject	7.96263E+13 // Validation Errors: Invalid action value 'Reject	7.96263E+13'. Must be one of: [ACCEPT, REJECT, Accept, Reject] // Type: VALIDATION_ERROR
+2033Z0AF460932605557942955		 // Validation Errors: Duplicate unique code '2033Z0AF460932605557942955'. Each unique code must appear only once in the file. | Missing required value // Type: VALIDATION_ERROR
+2033Z0AF460932605557942955,	Rekt	 // Validation Errors: Duplicate unique code '2033Z0AF460932605557942955'. Each unique code must appear only once in the file. | Invalid action value 'Rekt'. Must be one of: [ACCEPT, REJECT, Accept, Reject] // Type: VALIDATION_ERROR

@@ -4,6 +4,8 @@ import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeJob;
 import com.supersoft.sparkpay.bulk_dispute_processor.domain.BulkDisputeJobAudit;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeJobAuditRepository;
 import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeJobRepository;
+import com.supersoft.sparkpay.bulk_dispute_processor.repository.BulkDisputeSessionErrorRepository;
+import com.supersoft.sparkpay.bulk_dispute_processor.service.CsvValidationService;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.DisputeUpdater;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.JobMessagePublisher;
 import com.supersoft.sparkpay.bulk_dispute_processor.service.EnhancedJobProcessor;
@@ -44,6 +46,12 @@ public class BulkJobWorker {
     
     @Autowired
     private FailureClassifier failureClassifier;
+    
+    @Autowired
+    private BulkDisputeSessionErrorRepository errorRepository;
+    
+    @Autowired
+    private CsvValidationService csvValidationService;
     
     @Autowired
     private AtomicJobUpdater atomicJobUpdater;
@@ -169,12 +177,60 @@ public class BulkJobWorker {
                 }
                 
                 processedRows++;
+                
+                // Check for stored validation errors from upload process FIRST
+                // Convert 0-based currentRow to 1-based row number for validation errors
+                int validationRowNumber = currentRow + 1;
+                boolean hasStoredValidationErrors = errorRepository.hasRowErrors(jobMessage.getSessionId(), validationRowNumber);
+                log.debug("Row {} (validation row {}) stored validation check: hasErrors={}", currentRow, validationRowNumber, hasStoredValidationErrors);
+                
+                if (hasStoredValidationErrors) {
+                    log.info("Skipping row {} due to stored validation errors", currentRow);
+                    addAuditEntry(job.getId(), "ROW_SKIPPED", 
+                            String.format("Row %d skipped due to stored validation errors", currentRow));
+                    
+                    // Get stored validation errors for this row
+                    List<BulkDisputeSessionErrorRepository.SessionError> storedErrors = 
+                            errorRepository.getErrorsForRows(jobMessage.getSessionId(), List.of(validationRowNumber));
+                    
+                    // Format validation errors in a structured way
+                    StringBuilder errorBuilder = new StringBuilder();
+                    errorBuilder.append("VALIDATION_ERRORS: ");
+                    
+                    for (int i = 0; i < storedErrors.size(); i++) {
+                        BulkDisputeSessionErrorRepository.SessionError error = storedErrors.get(i);
+                        if (i > 0) {
+                            errorBuilder.append("; ");
+                        }
+                        errorBuilder.append("[").append(error.getColumnName()).append("] ").append(error.getErrorMessage());
+                    }
+                    
+                    failedRows.add(line + " // " + errorBuilder.toString());
+                    failureCount++;
+                    continue;
+                }
+                
                 List<String> row = CsvParser.parseCsvLine(line);
                 
                 if (row.size() != headers.size()) {
                     log.warn("Row {} has incorrect column count. Expected: {}, Got: {}", 
                             processedRows, headers.size(), row.size());
                     failedRows.add(line);
+                    failureCount++;
+                    continue;
+                }
+                
+                // Re-validate basic fields in real-time
+                List<String> realTimeValidationErrors = validateRow(row, headers, currentRow);
+                log.debug("Row {} real-time validation errors: {}", currentRow, realTimeValidationErrors);
+                
+                if (!realTimeValidationErrors.isEmpty()) {
+                    log.info("Skipping row {} due to real-time validation errors", currentRow);
+                    addAuditEntry(job.getId(), "ROW_SKIPPED", 
+                            String.format("Row %d skipped due to real-time validation errors", currentRow));
+                    
+                    String errorMessage = "VALIDATION_ERRORS: " + String.join("; ", realTimeValidationErrors);
+                    failedRows.add(line + " // " + errorMessage);
                     failureCount++;
                     continue;
                 }
@@ -197,7 +253,7 @@ public class BulkJobWorker {
                             new RuntimeException(result.getErrorMessage()), result.getErrorMessage());
                         
                         log.warn("Row {} processing failed: {} (Type: {})", currentRow, result.getErrorMessage(), failureType);
-                        failedRows.add(line + " // Error: " + result.getErrorMessage() + " // Type: " + failureType);
+                        failedRows.add(line + " // PROCESSING_ERROR: " + result.getErrorMessage() + " // Type: " + failureType);
                         failureCount++;
                     }
                 } catch (Exception e) {
@@ -205,7 +261,7 @@ public class BulkJobWorker {
                     FailureClassifier.FailureType failureType = failureClassifier.classifyFailure(e, e.getMessage());
                     
                     log.error("Error processing row {}: {} (Type: {})", currentRow, e.getMessage(), failureType, e);
-                    failedRows.add(line + " // Error: " + e.getMessage() + " // Type: " + failureType);
+                    failedRows.add(line + " // PROCESSING_ERROR: " + e.getMessage() + " // Type: " + failureType);
                     failureCount++;
                 }
                 
@@ -304,5 +360,48 @@ public class BulkJobWorker {
                 .createdAt(LocalDateTime.now())
                 .build();
         auditRepository.save(audit);
+    }
+    
+    /**
+     * Validate a single row using the same validation logic as the upload process
+     */
+    private List<String> validateRow(List<String> row, List<String> headers, int rowNumber) {
+        List<String> errors = new ArrayList<>();
+        
+        try {
+            // Create a map of the row data
+            Map<String, String> rowMap = new HashMap<>();
+            for (int i = 0; i < headers.size() && i < row.size(); i++) {
+                rowMap.put(headers.get(i), row.get(i));
+            }
+            
+            // Get required fields
+            String action = rowMap.get("Action");
+            String uniqueKey = rowMap.get("Unique Key");
+            
+            // Validate required fields
+            if (action == null || action.trim().isEmpty()) {
+                errors.add("Action is required");
+            } else if (!action.equalsIgnoreCase("Accept") && !action.equalsIgnoreCase("Reject")) {
+                errors.add("Action must be 'Accept' or 'Reject'");
+            }
+            
+            if (uniqueKey == null || uniqueKey.trim().isEmpty()) {
+                errors.add("Unique Key is required");
+            }
+            
+            // For REJECT actions, validate proof requirement (business rule)
+            if ("REJECT".equalsIgnoreCase(action) && uniqueKey != null && !uniqueKey.trim().isEmpty()) {
+                // Note: In job processing, we don't have access to proof files
+                // This validation should have been done during upload
+                // We'll rely on the stored validation errors for this
+            }
+            
+        } catch (Exception e) {
+            log.error("Error validating row {}: {}", rowNumber, e.getMessage());
+            errors.add("Validation error: " + e.getMessage());
+        }
+        
+        return errors;
     }
 }
